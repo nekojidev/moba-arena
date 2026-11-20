@@ -1,5 +1,6 @@
 // HTTP на «голому» node:http: маршрути, читання тіла з обмеженням, потокова віддача.
 
+import { MAX_BOTS } from './match.ts';
 import { createReadStream } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -118,6 +119,20 @@ export interface RequestHandlerDeps {
   readonly startedAt: number;
 }
 
+function parseBotCount(buffer: Buffer): number {
+  let body: unknown;
+  try {
+    body = JSON.parse(buffer.toString('utf8'));
+  } catch {
+    throw new HttpProblem(400, 'Body must be valid JSON');
+  }
+  const count = isRecord(body) ? body.count : undefined;
+  if (typeof count !== 'number' || !Number.isInteger(count) || count < 1 || count > MAX_BOTS) {
+    throw new HttpProblem(400, `Field "count" must be an integer in 1…${MAX_BOTS}`);
+  }
+  return count;
+}
+
 export function createRequestHandler({
   config,
   rooms,
@@ -163,6 +178,17 @@ export function createRequestHandler({
         if (error instanceof RoomError) throw new HttpProblem(409, error.message);
         throw error;
       }
+    }
+
+    // Додати ботів у матч, що вже йде: POST /api/rooms/:id/bots  { "count": 8 }
+    const botsRoom = /^\/api\/rooms\/([^/]+)\/bots$/.exec(pathname)?.[1];
+    if (botsRoom !== undefined && method === 'POST') {
+      const match = matches.get(botsRoom);
+      if (!match) throw new HttpProblem(409, 'Match is not running: join the room first');
+      const count = parseBotCount(await readBody(request, config.maxBodyBytes));
+      const bots = match.addBots(count);
+      logger.info('bots added', { room: botsRoom, bots });
+      return sendJson(response, 200, { bots });
     }
 
     if (pathname === '/api/replays' && method === 'GET') {

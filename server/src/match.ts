@@ -5,7 +5,6 @@
 import { seq, tick, type EntityId, type Seq } from '@moba-arena/shared/brand.ts';
 import type { Codec } from '@moba-arena/shared/codec/index.ts';
 import { isHoming } from '@moba-arena/shared/sim/behaviors.ts';
-import { botCommand } from '@moba-arena/shared/sim/bot.ts';
 import { createDirector, type Director } from '@moba-arena/shared/sim/game.ts';
 import { Ship, type Command } from '@moba-arena/shared/sim/ship.ts';
 import { World, type AnyEntity } from '@moba-arena/shared/sim/world.ts';
@@ -18,6 +17,7 @@ import {
   type Snapshot,
   type SnapshotEntity,
 } from '@moba-arena/shared/protocol.ts';
+import { Bot } from './bot.ts';
 import type { Logger } from './logger.ts';
 import type { PlayerRef, Room, RoomManager } from './rooms.ts';
 
@@ -25,6 +25,8 @@ const MAX_QUEUE = 30; // input у черзі одного гравця (1 с); �
 const MAX_BURST = 6; // скільки input гравця можна обробити за один крок сервера
 const MAX_CATCH_UP = 5; // скільки пропущених кроків наздоганяємо за раз
 const STATS_WINDOW = 300; // кроків (10 с)
+export const MAX_BOTS = 16;
+const AUTO_BOT_ID = 'bot-auto';
 
 // Готовий кадр для сокета: рядок JSON або байти знімка.
 export type Frame = Uint8Array | string;
@@ -73,6 +75,7 @@ export interface MatchReport extends MatchStats {
   readonly room: string;
   readonly tick: number;
   readonly players: number;
+  readonly bots: number;
   readonly entities: number;
   readonly tickDurationMs: Summary;
   readonly tickLatenessMs: Summary;
@@ -103,7 +106,9 @@ export class Match {
   readonly world: World;
   readonly director: Director;
   readonly players = new Map<string, MatchPlayer>(); // id гравця → стан гравця в матчі
-  bot: Ship | null = null;
+  // Боти — такі самі гравці, лише input їм видає Bot, а не сокет.
+  readonly #bots = new Map<string, Bot>();
+  #botCounter = 0;
   readonly stats: MatchStats = { overruns: 0, droppedInputs: 0, snapshots: 0, bytesOut: 0 };
 
   constructor({ room, logger }: { room: Room; logger: Logger }) {
@@ -127,12 +132,16 @@ export class Match {
   // --- гравці ------------------------------------------------------------------------------
 
   addPlayer(player: MatchEntrant): Ship {
-    const ship = this.world.spawn(
-      new Ship({ pos: this.world.findSafeSpot(16), team: 'green', name: player.name }),
-    );
+    const ship = this.#spawn(player.id, player.name, 'green');
     player.shipId = ship.id; // потрапить у roster: клієнти підпишуть героїв іменами
-    this.players.set(player.id, {
-      id: player.id,
+    this.#syncAutoBot();
+    return ship;
+  }
+
+  #spawn(id: string, name: string, team: 'green' | 'red'): Ship {
+    const ship = this.world.spawn(new Ship({ pos: this.world.findSafeSpot(16), team, name }));
+    this.players.set(id, {
+      id,
       ship,
       queue: [],
       ack: seq(0),
@@ -141,8 +150,39 @@ export class Match {
       processed: 0,
       link: null,
     });
-    this.#syncBot();
     return ship;
+  }
+
+  // Додає ботів (POST /api/rooms/:id/bots). Повертає, скільки їх стало.
+  addBots(count: number): number {
+    this.#removeBot(AUTO_BOT_ID); // «компаньйон» самотнього гравця більше не потрібен
+    for (let i = 0; i < count && this.#bots.size < MAX_BOTS; i += 1) {
+      this.#botCounter += 1;
+      const id = `bot-${this.#botCounter}`;
+      this.#spawn(id, `Бот ${this.#botCounter}`, 'red');
+      this.#bots.set(id, new Bot());
+    }
+    return this.#bots.size;
+  }
+
+  #removeBot(id: string): void {
+    const player = this.players.get(id);
+    if (!player || !this.#bots.delete(id)) return;
+    this.world.despawn(player.ship.id);
+    this.players.delete(id);
+  }
+
+  get humans(): number {
+    return this.players.size - this.#bots.size;
+  }
+
+  get botCount(): number {
+    return this.#bots.size;
+  }
+
+  // Герой бота-компаньйона (або null) — для тестів.
+  get bot(): Ship | null {
+    return this.#bots.has(AUTO_BOT_ID) ? (this.players.get(AUTO_BOT_ID)?.ship ?? null) : null;
   }
 
   // Викликає мережевий шар, коли знає, яким кодеком і через що слати цьому гравцеві.
@@ -156,18 +196,18 @@ export class Match {
     if (!player) return;
     this.world.despawn(player.ship.id);
     this.players.delete(playerId);
-    this.#syncBot();
+    this.#syncAutoBot();
   }
 
-  // Самотньому гравцеві складає компанію бот; щойно людей двоє — бот іде.
-  #syncBot(): void {
-    if (this.players.size === 1 && !this.bot) {
-      this.bot = this.world.spawn(
-        new Ship({ pos: this.world.findSafeSpot(16), team: 'red', name: 'Бот' }),
-      );
-    } else if (this.players.size !== 1 && this.bot) {
-      this.world.despawn(this.bot.id);
-      this.bot = null;
+  // Самотньому гравцеві складає компанію бот; щойно людей двоє (або ботів додали
+  // вручну) — компаньйон іде.
+  #syncAutoBot(): void {
+    const onlyAuto = this.#bots.size === 1 && this.#bots.has(AUTO_BOT_ID);
+    if (this.humans === 1 && this.#bots.size === 0) {
+      this.#spawn(AUTO_BOT_ID, 'Бот', 'red');
+      this.#bots.set(AUTO_BOT_ID, new Bot());
+    } else if (this.humans !== 1 && onlyAuto) {
+      this.#removeBot(AUTO_BOT_ID);
     }
   }
 
@@ -188,6 +228,16 @@ export class Match {
   // --- крок --------------------------------------------------------------------------------
 
   tick(): void {
+    // Боти «натискають кнопки» так само, як люди: input із наступним номером — у чергу.
+    for (const [id, bot] of this.#bots) {
+      const player = this.players.get(id);
+      if (!player) continue;
+      this.pushInput(id, {
+        seq: seq(player.lastSeq + 1),
+        ...bot.nextInput(player.ship, this.world),
+      });
+    }
+
     const inputs = new Map<EntityId, Command | readonly Command[]>();
     for (const player of this.players.values()) {
       // Бюджет: +1 input за крок, із запасом MAX_BURST на нерівну мережу. У середньому сервер
@@ -206,7 +256,6 @@ export class Match {
       // Порожній масив — input не прийшов: герой цього кроку не рухається (див. Ship.update).
       inputs.set(player.ship.id, commands);
     }
-    if (this.bot) inputs.set(this.bot.id, botCommand(this.bot, this.world));
 
     this.director.tick(DT);
     this.world.step(DT, inputs);
@@ -339,7 +388,8 @@ export class Match {
     return {
       room: this.room.id,
       tick: this.world.tick,
-      players: this.players.size,
+      players: this.humans,
+      bots: this.#bots.size,
       entities: this.world.size,
       tickDurationMs: summarize(this.#durations),
       tickLatenessMs: summarize(this.#lateness),

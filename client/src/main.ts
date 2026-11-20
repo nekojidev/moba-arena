@@ -123,6 +123,15 @@ if (joined) {
   const { name, room, connection, playerId, welcome } = joined;
   roomName = room.name;
   game = startNetGame({ ctx, view, sprites, audio, connection, welcome, playerName: name, params });
+  // ?bots=8 — попросити сервер додати ботів у цей матч (для профілювання й демонстрації).
+  const bots = Number(params.get('bots') ?? 0);
+  if (Number.isInteger(bots) && bots > 0) {
+    fetch(new URL(`api/rooms/${encodeURIComponent(room.id)}/bots`, document.baseURI), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ count: bots }),
+    }).catch((error: unknown) => console.warn('[bots]', error));
+  }
   for (const warning of warnings) console.warn(warning);
   mountChat(connection, requireElement(document.querySelector<HTMLElement>('#chat'), '#chat'), {
     playerId,
