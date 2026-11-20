@@ -8,6 +8,8 @@ export function createInput(target) {
   const pressed = new Set(); // клавіші, натиснуті після останнього кроку симуляції
 
   function onKeyDown(event) {
+    // Гравець друкує в чаті — це не команди героя.
+    if (event.target?.closest?.('input, textarea')) return;
     if (GAME_KEYS.has(event.code)) event.preventDefault(); // не скролимо сторінку
     // event.repeat — автоповтор ОС; фронт натискання рахуємо лише один раз.
     if (!event.repeat && !down.has(event.code)) pressed.add(event.code);

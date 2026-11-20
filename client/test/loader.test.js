@@ -284,26 +284,131 @@ test('Lobby: опитування за інтервалом; stop() скасов
   assert.equal(lobby.polling, false);
 });
 
-test('Lobby.join: перевіряє ім’я й місця; успіх → joined і зупинка опитування', async () => {
+// Підставне з'єднання: тест сам вирішує, що «відповість сервер».
+function fakeConnection() {
+  const handlers = new Map();
+  const connection = {
+    closed: false,
+    on(type, handler, { signal } = {}) {
+      handlers.set(type, handler);
+      signal?.addEventListener('abort', () => handlers.delete(type));
+    },
+    close() {
+      connection.closed = true;
+    },
+    receive: (type, detail) => handlers.get(type)?.(detail),
+    get listeners() {
+      return handlers.size;
+    },
+  };
+  return connection;
+}
+
+test('Lobby.join: перевіряє ім’я й місця ще до з’єднання', async () => {
   mockFetch({ '/rooms': () => json(ROOMS) });
-  const lobby = new Lobby({ url: 'http://test/rooms', intervalMs: 10_000 });
+  let connects = 0;
+  const lobby = new Lobby({
+    url: 'http://test/rooms',
+    intervalMs: 10_000,
+    connect: () => (connects += 1),
+  });
   lobby.start();
   await once(lobby, 'rooms');
 
   const problems = [];
   lobby.addEventListener('error', (event) => problems.push(event.detail.error.message));
-  assert.equal(lobby.join('a', 'x'), null);
-  assert.equal(lobby.join('nope', 'Мандрівник'), null);
-  assert.equal(lobby.join('full', 'Мандрівник'), null);
+  assert.equal(await lobby.join('a', 'x'), null);
+  assert.equal(await lobby.join('nope', 'Мандрівник'), null);
+  assert.equal(await lobby.join('full', 'Мандрівник'), null);
   assert.equal(problems.length, 3);
+  assert.equal(connects, 0, 'сокет навіть не відкривали');
   assert.equal(lobby.polling, true);
+  lobby.stop();
+});
+
+test('Lobby.join: welcome від сервера → joined, опитування зупинено', async () => {
+  mockFetch({ '/rooms': () => json(ROOMS) });
+  const connection = fakeConnection();
+  let asked;
+  const lobby = new Lobby({
+    url: 'http://test/rooms',
+    intervalMs: 10_000,
+    connect: (request) => ((asked = request), connection),
+  });
+  lobby.start();
+  await once(lobby, 'rooms');
 
   const joined = once(lobby, 'joined');
-  lobby.join('a', '  Мандрівник  ');
+  const result = lobby.join('a', '  Мандрівник  ');
+  assert.deepEqual(asked, { roomId: 'a', name: 'Мандрівник' });
+  connection.receive('welcome', { playerId: 'p1', room: ROOMS.rooms[0] });
+
   const { detail } = await joined;
+  assert.equal((await result).id, 'a');
   assert.equal(detail.name, 'Мандрівник');
-  assert.equal(detail.room.id, 'a');
+  assert.equal(detail.playerId, 'p1');
+  assert.equal(detail.connection, connection);
   assert.equal(lobby.polling, false);
+  assert.equal(connection.closed, false);
+  assert.equal(connection.listeners, 0, 'тимчасових слухачів знято');
+});
+
+test('Lobby.join: відмова сервера або мовчання → error, сокет закрито, лобі живе далі', async () => {
+  mockFetch({ '/rooms': () => json(ROOMS) });
+  const connections = [];
+  const lobby = new Lobby({
+    url: 'http://test/rooms',
+    intervalMs: 10_000,
+    joinTimeoutMs: 40,
+    connect: () => {
+      connections.push(fakeConnection());
+      return connections.at(-1);
+    },
+  });
+  lobby.start();
+  await once(lobby, 'rooms');
+  const problems = [];
+  lobby.addEventListener('error', (event) => problems.push(event.detail.error.message));
+
+  const refused = lobby.join('a', 'Мандрівник');
+  connections[0].receive('status', {
+    status: 'closed',
+    reason: 'кімната заповнена або вже не існує',
+  });
+  assert.equal(await refused, null);
+
+  assert.equal(await lobby.join('a', 'Мандрівник'), null); // сервер мовчить → таймаут
+
+  assert.deepEqual(problems, ['кімната заповнена або вже не існує', 'сервер не відповів на вхід']);
+  assert.ok(connections.every((connection) => connection.closed));
+  assert.equal(lobby.polling, true, 'гравець лишився в лобі');
+  lobby.stop();
+});
+
+test('Lobby.createRoom: POST, потім оновлення списку; помилка сервера → подія error', async () => {
+  let posted = null;
+  globalThis.fetch = async (url, options = {}) => {
+    if (options.method === 'POST') {
+      posted = JSON.parse(options.body);
+      if (posted.name === 'x') {
+        return new Response(JSON.stringify({ error: 'Field "name" must be 2–24 characters' }), {
+          status: 400,
+        });
+      }
+      return new Response(JSON.stringify({ room: { id: 'new', name: posted.name } }), {
+        status: 201,
+      });
+    }
+    return json(ROOMS);
+  };
+  const lobby = new Lobby({ url: 'http://test/rooms' });
+  const refreshed = once(lobby, 'rooms');
+  assert.deepEqual(await lobby.createRoom('Нова'), { id: 'new', name: 'Нова' });
+  await refreshed;
+
+  const failed = once(lobby, 'error');
+  assert.equal(await lobby.createRoom('x'), null);
+  assert.match((await failed).detail.error.message, /2–24/);
 });
 
 test('Шина подій світу: fired / hit / exploded / score приходять синхронно', async () => {

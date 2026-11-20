@@ -41,7 +41,18 @@ function chaosNetwork() {
   };
 }
 
+// У розробці сторінку віддає Vite (з гарячим перезавантаженням), а /api і /ws він
+// пересилає на сервер гри — тож для браузера все живе на одному origin, як і в продакшені.
+const SERVER = process.env.GAME_SERVER ?? 'http://127.0.0.1:3000';
+const proxy = {
+  '/api': { target: SERVER },
+  '/health': { target: SERVER },
+  '/ws': { target: SERVER, ws: true },
+};
+
 export default defineConfig({
+  server: { proxy },
+  preview: { proxy },
   // 'mpa': неіснуючий файл — це чесний 404, а не index.html (як у режимі SPA за замовчуванням).
   appType: 'mpa',
   plugins: [chaosNetwork()],

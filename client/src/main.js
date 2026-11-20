@@ -3,6 +3,8 @@
 // не блокується — між await-ами працюють і рендер смужки, і кнопки.
 
 import { createAudio } from './audio.js';
+import { mountChat } from './chat.js';
+import { createConnection } from './net/connection.js';
 import { once } from './async.js';
 import { Lobby } from './lobby/lobby.js';
 import { mountLobbyView } from './lobby/view.js';
@@ -39,12 +41,19 @@ const warnings = failures.map(
   ({ id, error }) => `⚠ ${id}: ${describeError(error).toLowerCase()} — запасний варіант`,
 );
 
-// 2. Лобі. Режими експериментів Lab 1 (?exp, ?bench) і ?room=<id> його пропускають.
+// 2. Лобі. Режими експериментів Lab 1 (?exp, ?bench) його пропускають і грають без сервера.
+const socketUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+
 async function chooseRoom() {
   if (params.has('exp') || params.has('bench')) {
-    return { name: 'Гравець', room: { name: 'локальна', arena: {} } };
+    return { name: 'Гравець', room: { name: 'локальна', arena: {} }, connection: null };
   }
-  const lobby = new Lobby({ url: new URL('api/rooms.json', document.baseURI).href });
+  const lobby = new Lobby({
+    url: new URL('api/rooms', document.baseURI).href,
+    // hello надсилається після КОЖНОГО відкриття сокета — отже, і після перепідключення.
+    connect: ({ roomId, name }) =>
+      createConnection({ url: socketUrl, hello: () => ({ type: 'join', room: roomId, name }) }),
+  });
   const lobbyView = mountLobbyView(lobby, document.querySelector('#lobby'));
   lobby.start();
   const joined = await once(lobby, 'joined'); // подія → проміс
@@ -52,7 +61,7 @@ async function chooseRoom() {
   return joined.detail;
 }
 
-const { name, room } = await chooseRoom();
+const { name, room, connection, playerId } = await chooseRoom();
 
 // 3. Гра з конфігом арени: значення кімнати перекривають типові з arena.json.
 document.querySelector('#modes').hidden = false;
@@ -69,4 +78,12 @@ const game = startGame({
 });
 
 console.log(`[game] кімната «${room.name}», ассети за ${elapsedMs.toFixed(0)} мс (${strategy})`);
-window.__game = { ...game, audio }; // для налагодження з консолі
+
+// Координати героїв мережею ще не ходять (це Lab 5): кожне вікно грає свій локальний матч,
+// а спільні в кімнаті — склад гравців і чат.
+if (connection) {
+  mountChat(connection, document.querySelector('#chat'), { playerId, roomName: room.name });
+  window.addEventListener('pagehide', () => connection.close());
+}
+
+window.__game = { ...game, audio, connection }; // для налагодження з консолі

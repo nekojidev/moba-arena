@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist'] },
+  { ignores: ['**/dist', '**/logs'] },
   js.configs.recommended,
   {
     languageOptions: {
@@ -17,13 +17,13 @@ export default [
   },
   {
     // Симуляція не має права торкатися DOM: жодних браузерних глобалів.
-    files: ['src/sim/**'],
     // EventTarget і CustomEvent — не DOM: вони є і в Node, тому шині подій дозволені.
+    files: ['client/src/sim/**'],
     languageOptions: { globals: { EventTarget: 'readonly', CustomEvent: 'readonly' } },
     rules: { 'no-undef': 'error' },
   },
   {
-    files: ['scripts/**', 'test/**', 'vite.config.js'],
+    files: ['client/scripts/**', 'client/test/**', 'client/vite.config.js', 'server/**'],
     languageOptions: { globals: globals.node },
   },
 ];

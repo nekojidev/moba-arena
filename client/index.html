@@ -158,6 +158,92 @@
         font-size: 16px;
         font-weight: bold;
       }
+      #lobby .create {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px;
+      }
+      #lobby .create input {
+        font-size: 13px;
+        padding: 6px 10px;
+      }
+      #lobby button.secondary {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #2f4a39;
+        background: #16241b;
+        color: #cfe8d6;
+        font-size: 13px;
+      }
+      #chat {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        width: 280px;
+        display: grid;
+        gap: 6px;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #2f4a39;
+        background: rgba(8, 14, 10, 0.82);
+        color: #d7f5df;
+        font-size: 12px;
+      }
+      #chat h2 {
+        margin: 0;
+        font-size: 13px;
+      }
+      #chat ul,
+      #chat ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      #chat .roster {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      #chat .roster li {
+        padding: 1px 6px;
+        border-radius: 10px;
+        background: #16241b;
+        color: #9fc7ab;
+      }
+      #chat .roster li.me {
+        color: #3fd6a3;
+      }
+      #chat .net {
+        margin: 0;
+        color: #7d9886;
+      }
+      #chat .net.bad {
+        color: #f2c14e;
+      }
+      #chat .log {
+        height: 120px;
+        overflow-y: auto;
+        display: grid;
+        align-content: start;
+        gap: 2px;
+        overflow-wrap: anywhere;
+      }
+      #chat .log .system {
+        color: #7d9886;
+      }
+      #chat .log .mine {
+        color: #9fe8c9;
+      }
+      #chat input {
+        width: 100%;
+        box-sizing: border-box;
+        font: inherit;
+        padding: 5px 8px;
+        border-radius: 4px;
+        border: 1px solid #2f4a39;
+        background: #0f1813;
+        color: #d7f5df;
+      }
       #lobby button[type='submit']:disabled {
         opacity: 0.4;
         cursor: not-allowed;
@@ -169,6 +255,7 @@
     <button id="loading-cancel" class="loading-button" hidden>Скасувати</button>
     <button id="loading-retry" class="loading-button" hidden>Спробувати ще раз</button>
     <div id="lobby" hidden></div>
+    <aside id="chat" hidden></aside>
     <nav id="modes" hidden>
       <a href="./">лобі</a>
       <a href="?exp=block">exp 1: блок 100 мс</a>
