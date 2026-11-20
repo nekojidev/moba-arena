@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOBA Arena — Lab 01</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b100d;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      nav {
+        position: fixed;
+        right: 12px;
+        top: 12px;
+        display: flex;
+        gap: 6px;
+        font: 12px ui-monospace, Menlo, monospace;
+      }
+      nav a {
+        color: #cfe8d6;
+        background: rgba(10, 16, 12, 0.75);
+        border: 1px solid #2f4a39;
+        border-radius: 4px;
+        padding: 4px 8px;
+        text-decoration: none;
+      }
+      nav a.active {
+        border-color: #f2c14e;
+        color: #f2c14e;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <nav id="modes">
+      <a href="./" data-mode="">норма</a>
+      <a href="?exp=block" data-mode="exp=block">exp 1: блок 100 мс</a>
+      <a href="?exp=interval" data-mode="exp=interval">exp 2: setInterval</a>
+      <a href="?bench" data-mode="bench">exp 3: fixed + bench</a>
+      <a href="?exp=variable&bench" data-mode="exp=variable&bench">exp 3: variable + bench</a>
+    </nav>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
