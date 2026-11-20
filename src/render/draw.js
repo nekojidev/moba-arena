@@ -1,4 +1,17 @@
-// Усе малювання. Функції отримують ctx і дані — стану тут немає.
+// Усе малювання. Функції отримують ctx і дані — ігрового стану тут немає.
+// Кожна drawX(ctx, entity, pose, timeMs): pose — інтерпольовані { x, y, angle }.
+
+import { isHoming } from '../sim/behaviors.js';
+
+const TAU = Math.PI * 2;
+
+const TEAMS = {
+  green: { cloak: '#1f8f6a', body: '#3fd6a3', face: '#e6fff5', bolt: '#7ef0c0' },
+  red: { cloak: '#a8342c', body: '#e2574c', face: '#ffe9e6', bolt: '#ff9a8a' },
+};
+
+const EFFECT_COLORS = { shield: '#6fc3ff', rapid: '#ffb347', homing: '#e07bff' };
+const EFFECT_LABELS = { shield: 'щит', rapid: 'швидкий вогонь', homing: 'самонаведення' };
 
 export function drawArena(ctx, arena) {
   const { width: w, height: h } = arena;
@@ -45,8 +58,8 @@ export function drawArena(ctx, arena) {
   ctx.lineTo(w - 110, 110);
   ctx.stroke();
 
-  drawBase(ctx, 110, h - 110, '#3fd6a3');
-  drawBase(ctx, w - 110, 110, '#e2574c');
+  drawBase(ctx, 110, h - 110, TEAMS.green.body);
+  drawBase(ctx, w - 110, 110, TEAMS.red.body);
 }
 
 function drawBase(ctx, x, y, color) {
@@ -55,23 +68,43 @@ function drawBase(ctx, x, y, color) {
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(0, 0, 90, 0, Math.PI * 2);
+  ctx.arc(0, 0, 90, 0, TAU);
   ctx.fill();
   ctx.globalAlpha = 0.9;
   ctx.strokeStyle = color;
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.arc(0, 0, 34, 0, Math.PI * 2);
+  ctx.arc(0, 0, 34, 0, TAU);
   ctx.stroke();
   ctx.restore();
 }
 
 // Герой намальований у початку координат обличчям праворуч (+x);
 // на місце його ставить трансформація canvas, а не перерахунок вершин.
-export function drawHero(ctx, ship, timeMs) {
+export function drawShip(ctx, ship, pose, timeMs) {
+  if (ship.isDown) return;
+  const colors = TEAMS[ship.team] ?? TEAMS.green;
+
   ctx.save();
-  ctx.translate(ship.x, ship.y);
-  ctx.rotate(ship.angle);
+  ctx.translate(pose.x, pose.y);
+
+  // Смужка здоров'я — не обертається разом із героєм.
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.fillRect(-20, -34, 40, 5);
+  ctx.fillStyle = colors.body;
+  ctx.fillRect(-20, -34, 40 * (ship.hp / 100), 5);
+
+  if (ship.hasEffect('shield')) {
+    ctx.strokeStyle = EFFECT_COLORS.shield;
+    ctx.globalAlpha = 0.55 + 0.25 * Math.sin(timeMs * 0.01);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, ship.radius + 9, 0, TAU);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.rotate(pose.angle);
 
   if (ship.thrust > 0) {
     // «Полум'я тяги» — чарівний слід, що мерехтить.
@@ -90,7 +123,7 @@ export function drawHero(ctx, ship, timeMs) {
   }
 
   // Плащ
-  ctx.fillStyle = '#5b3fa8';
+  ctx.fillStyle = colors.cloak;
   ctx.beginPath();
   ctx.moveTo(6, -15);
   ctx.lineTo(-24, -11);
@@ -101,16 +134,16 @@ export function drawHero(ctx, ship, timeMs) {
   ctx.fill();
 
   // Тіло й каптур
-  ctx.fillStyle = '#8f6fe0';
+  ctx.fillStyle = colors.body;
   ctx.beginPath();
-  ctx.arc(0, 0, 13, 0, Math.PI * 2);
+  ctx.arc(0, 0, 13, 0, TAU);
   ctx.fill();
-  ctx.fillStyle = '#e9dcff';
+  ctx.fillStyle = colors.face;
   ctx.beginPath();
-  ctx.arc(5, 0, 6, 0, Math.PI * 2);
+  ctx.arc(5, 0, 6, 0, TAU);
   ctx.fill();
 
-  // Посох із кристалом — показує напрямок погляду
+  // Посох із кристалом — показує напрямок погляду; кристал гасне, поки ривок перезаряджається
   ctx.strokeStyle = '#c9a25a';
   ctx.lineWidth = 3;
   ctx.lineCap = 'round';
@@ -120,10 +153,108 @@ export function drawHero(ctx, ship, timeMs) {
   ctx.stroke();
   ctx.fillStyle = ship.dashCooldown === 0 ? '#7ef0ff' : '#4a6f78';
   ctx.beginPath();
-  ctx.arc(27, 17, 5, 0, Math.PI * 2);
+  ctx.arc(27, 17, 5, 0, TAU);
   ctx.fill();
 
   ctx.restore();
+}
+
+export function drawBullet(ctx, bullet, pose) {
+  const color = isHoming(bullet) ? EFFECT_COLORS.homing : (TEAMS[bullet.team] ?? TEAMS.green).bolt;
+  ctx.save();
+  ctx.translate(pose.x, pose.y);
+  ctx.rotate(pose.angle);
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.5;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-16, 0);
+  ctx.lineTo(0, 0);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, 0, bullet.radius, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Нерівний контур голема залежить лише від id — однаковий у кожному кадрі.
+function rockOutline(id, radius) {
+  const points = [];
+  const corners = 10;
+  for (let i = 0; i < corners; i += 1) {
+    const wobble = 0.82 + 0.18 * Math.sin(id * 12.9898 + i * 78.233);
+    const angle = (i / corners) * TAU;
+    points.push([Math.cos(angle) * radius * wobble, Math.sin(angle) * radius * wobble]);
+  }
+  return points;
+}
+
+export function drawAsteroid(ctx, asteroid, pose) {
+  const seeking = isHoming(asteroid);
+  ctx.save();
+  ctx.translate(pose.x, pose.y);
+  ctx.rotate(pose.angle);
+  ctx.fillStyle = seeking ? '#5d4a6e' : '#6b6f66';
+  ctx.strokeStyle = seeking ? EFFECT_COLORS.homing : '#9aa093';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  rockOutline(asteroid.id, asteroid.radius).forEach(([x, y], index) => {
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // «Око» голема
+  ctx.fillStyle = seeking ? EFFECT_COLORS.homing : '#f2c14e';
+  ctx.beginPath();
+  ctx.arc(asteroid.radius * 0.3, 0, asteroid.radius * 0.16, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+}
+
+export function drawPickup(ctx, pickup, pose, timeMs) {
+  const color = EFFECT_COLORS[pickup.effect.type] ?? '#ffffff';
+  const pulse = 1 + 0.08 * Math.sin(timeMs * 0.006);
+  ctx.save();
+  ctx.translate(pose.x, pose.y);
+  ctx.globalAlpha = pickup.ttl < 3 ? 0.4 + 0.4 * Math.abs(Math.sin(timeMs * 0.01)) : 1;
+  ctx.scale(pulse, pulse);
+  ctx.rotate(timeMs * 0.001);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, -pickup.radius);
+  ctx.lineTo(pickup.radius, 0);
+  ctx.lineTo(0, pickup.radius);
+  ctx.lineTo(-pickup.radius, 0);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.globalAlpha *= 0.35;
+  ctx.fill();
+  ctx.restore();
+}
+
+export function drawExplosion(ctx, explosion, pose) {
+  ctx.save();
+  ctx.translate(pose.x, pose.y);
+  ctx.fillStyle = explosion.color;
+  for (const particle of explosion.particles) {
+    if (particle.life <= 0) continue;
+    ctx.globalAlpha = particle.life / particle.maxLife;
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, 3, 0, TAU);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+export function effectLabel(type) {
+  return EFFECT_LABELS[type] ?? type;
 }
 
 export function drawHud(ctx, stats, extraLines = []) {
@@ -146,5 +277,26 @@ export function drawHud(ctx, stats, extraLines = []) {
   lines.forEach((line, index) => {
     ctx.fillText(line, 12 + padding, 12 + padding + index * lineHeight);
   });
+  ctx.restore();
+}
+
+export function drawScore(ctx, viewWidth, playerScore, botScore) {
+  ctx.save();
+  ctx.font = 'bold 22px ui-monospace, Menlo, Consolas, monospace';
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'center';
+  const text = `${playerScore}  :  ${botScore}`;
+  const width = ctx.measureText(text).width + 28;
+  ctx.fillStyle = 'rgba(8, 14, 10, 0.78)';
+  ctx.fillRect(viewWidth / 2 - width / 2, 44, width, 34);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = TEAMS.green.body;
+  ctx.fillText(String(playerScore), viewWidth / 2 - 16, 50);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#d7f5df';
+  ctx.fillText(':', viewWidth / 2, 50);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = TEAMS.red.body;
+  ctx.fillText(String(botScore), viewWidth / 2 + 16, 50);
   ctx.restore();
 }

@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "determinism": "node scripts/determinism.js"
+    "determinism": "node scripts/determinism.js",
+    "test": "node --test",
+    "this-bug": "node scripts/this-bug.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

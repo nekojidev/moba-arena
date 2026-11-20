@@ -22,7 +22,7 @@ export default [
     rules: { 'no-undef': 'error' },
   },
   {
-    files: ['scripts/**'],
+    files: ['scripts/**', 'test/**'],
     languageOptions: { globals: globals.node },
   },
 ];

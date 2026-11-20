@@ -1,26 +1,23 @@
-// Експеримент 3 без браузера: та сама фізика з src/sim, запущена в Node.
-// Імітуємо два «монітори» — 60 кадрів/с і ~10 кадрів/с (CPU throttle 6×) —
+// Експеримент 3 (Lab 1) без браузера: та сама фізика з src/sim, запущена в Node.
+// Імітуємо три «монітори» — 60 кадрів/с, 144 кадри/с і ~10 кадрів/с (CPU throttle 6×) —
 // і порівнюємо позицію героя після 5 с симульованого часу тяги.
 //
 //   npm run determinism
 
-import { createShip, integrate } from '../src/sim/ship.js';
-import { ARENA, wrapShip } from '../src/sim/arena.js';
+import { createGame } from '../src/sim/game.js';
 import { BENCH_COMMAND, BENCH_DURATION } from '../src/sim/bench.js';
 
 const STEP = 1 / 60;
 
 function run({ frameMs, fixed }) {
-  let ship = createShip(ARENA.width / 2, ARENA.height / 2);
+  const game = createGame({ empty: true });
   let accumulator = 0;
   let simTime = 0;
-  let steps = 0;
   const done = () => simTime >= BENCH_DURATION - 1e-6;
 
   const advance = (dt) => {
-    ship = wrapShip(integrate(ship, BENCH_COMMAND, dt), ARENA);
+    game.step(dt, BENCH_COMMAND);
     simTime += dt;
-    steps += 1;
   };
 
   while (!done()) {
@@ -35,7 +32,7 @@ function run({ frameMs, fixed }) {
       advance(dt);
     }
   }
-  return { x: ship.x, y: ship.y, steps, simTime };
+  return { x: game.player.pos.x, y: game.player.pos.y, steps: game.world.tick };
 }
 
 const rows = [];
