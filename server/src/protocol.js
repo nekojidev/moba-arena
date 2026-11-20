@@ -1,16 +1,25 @@
-// Протокол v0: JSON-повідомлення { v, type, ...поля }.
+// Керувальна частина протоколу: текстові JSON-повідомлення { v, type, ...поля }.
+// Ігрові повідомлення (input, snapshot) і їхні кодеки — у пакеті shared; формат описано
+// в shared/PROTOCOL.md.
 //
-// Клієнт → сервер:  join  { room, name }      перше повідомлення, не пізніше ніж за 5 с
+// Клієнт → сервер:  join  { room, name, codec? }   перше повідомлення, не пізніше ніж за 5 с
 //                   chat  { text }
+//                   ping  { t }                    сервер одразу повертає pong { t }
 //                   leave {}
-// Сервер → клієнт:  welcome { playerId, room }
-//                   roster  { players: [{ id, name }] }
+//                   input { seq, turn, … }         лише з codec: "json"; інакше — бінарний кадр
+// Сервер → клієнт:  welcome { playerId, shipId, room, tickRate, codec }
+//                   roster  { players: [{ id, name, shipId }] }
 //                   chat    { from: { id, name }, text, t }
+//                   pong    { t }
+//                   events  { tick, events: [...] }
 //
 // Серверу не можна довіряти жодному байту з мережі — навіть якщо клієнта писали ми самі:
 // хтось інший напише свого. Тому кожне повідомлення перевіряється повністю.
 
-export const PROTOCOL_VERSION = 0;
+import { CODECS } from '@moba-arena/shared/codec/index.js';
+import { PROTOCOL_VERSION } from '@moba-arena/shared/protocol.js';
+
+export { PROTOCOL_VERSION };
 
 // Коди закриття: 4000–4999 — діапазон, відданий застосункам.
 export const CLOSE = Object.freeze({
@@ -28,10 +37,16 @@ export const CLOSE = Object.freeze({
 
 const text = (min, max) => (value) =>
   typeof value === 'string' && value.trim().length >= min && value.length <= max;
+const optional = (check) => (value) => value === undefined || check(value);
+const oneOf =
+  (...allowed) =>
+  (value) =>
+    allowed.includes(value);
 
 // type → { поле: перевірка }. Зайві поля — теж помилка форми.
 const CLIENT_MESSAGES = {
-  join: { room: text(1, 64), name: text(2, 16) },
+  join: { room: text(1, 64), name: text(2, 16), codec: optional(oneOf('binary', 'json')) },
+  ping: { t: (value) => Number.isFinite(value) },
   chat: { text: text(1, 200) },
   leave: {},
 };
@@ -51,6 +66,15 @@ export function parseClientMessage(data, isBinary = false) {
     return bad(CLOSE.BAD_MESSAGE, 'message must be an object');
   }
   if (message.v !== PROTOCOL_VERSION) return bad(CLOSE.VERSION, 'unsupported protocol version');
+
+  // Input у JSON-режимі перевіряє той самий кодек, що й на клієнті.
+  if (message.type === 'input') {
+    try {
+      return { ok: true, message: { type: 'input', input: CODECS.json.decodeInput(message) } };
+    } catch (error) {
+      return bad(CLOSE.BAD_MESSAGE, error.message);
+    }
+  }
   if (typeof message.type !== 'string' || !Object.hasOwn(CLIENT_MESSAGES, message.type)) {
     return bad(CLOSE.UNKNOWN_TYPE, 'unknown message type');
   }

@@ -19,8 +19,17 @@ export class World {
   #spawnQueue = [];
   #stepping = false;
 
-  constructor({ arena, seed = 1, collide = findCollisions, resolve = resolveCollision }) {
+  // cosmetics: false — не створювати сутності-прикраси (вибухи). Сервер їх не розсилає:
+  // клієнт малює вибух сам, отримавши подію.
+  constructor({
+    arena,
+    seed = 1,
+    collide = findCollisions,
+    resolve = resolveCollision,
+    cosmetics = true,
+  }) {
     this.arena = arena;
+    this.cosmetics = cosmetics;
     this.rng = createRng(seed);
     this.collide = collide; // системи можна підмінити — це звичайні функції
     this.resolve = resolve;

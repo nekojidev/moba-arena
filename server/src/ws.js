@@ -2,10 +2,15 @@
 
 import { randomUUID } from 'node:crypto';
 import { WebSocket, WebSocketServer } from 'ws';
+import { CODECS } from '@moba-arena/shared/codec/index.js';
+import { TICK_RATE } from '@moba-arena/shared/protocol.js';
 import { CLOSE, parseClientMessage, serverMessage } from './protocol.js';
 import { RoomError } from './rooms.js';
 
-export function attachWebSocket({ server, rooms, config, logger }) {
+// Input іде 30 разів/с — у нього власний, щедріший ліміт, ніж у чату.
+const INPUT_RATE = TICK_RATE * 3;
+
+export function attachWebSocket({ server, rooms, matches, config, logger }) {
   // noServer: рукостискання робимо самі в 'upgrade' — щоб приймати сокети лише на /ws.
   // maxPayload: завелике повідомлення ws відкидає сам, закриваючи сокет із кодом 1009.
   const wss = new WebSocketServer({ noServer: true, maxPayload: config.maxPayload });
@@ -32,7 +37,12 @@ export function attachWebSocket({ server, rooms, config, logger }) {
   // але мережа ще не забрала. Якщо клієнт не встигає читати, цей буфер росте в НАШІЙ пам'яті.
   // Тому некритичне (чат; у Lab 5 — знімки стану) такому клієнту просто не шлемо,
   // а якщо буфер виріс у 16 разів за поріг — розриваємо з'єднання.
-  function send(ws, type, payload, { critical = true } = {}) {
+  function send(ws, type, payload, options) {
+    return sendRaw(ws, serverMessage(type, payload), options);
+  }
+
+  // data — уже готовий кадр: рядок JSON або байти знімка.
+  function sendRaw(ws, data, { critical = true } = {}) {
     if (ws.readyState !== WebSocket.OPEN) return false;
     if (ws.bufferedAmount > config.slowClientBytes) {
       if (ws.bufferedAmount > config.slowClientBytes * 16) {
@@ -47,7 +57,7 @@ export function attachWebSocket({ server, rooms, config, logger }) {
         return false;
       }
     }
-    ws.send(serverMessage(type, payload));
+    ws.send(data);
     return true;
   }
 
@@ -68,14 +78,23 @@ export function attachWebSocket({ server, rooms, config, logger }) {
 
   // Token bucket: відро на N жетонів, що наповнюється зі швидкістю N/с.
   // Повідомлення коштує жетон; порожнє відро — клієнт шле занадто часто.
-  function takeToken(state) {
+  function takeToken(bucket, rate) {
     const now = performance.now();
-    const rate = config.rateLimitPerSecond;
-    state.tokens = Math.min(rate, state.tokens + ((now - state.refilledAt) / 1000) * rate);
-    state.refilledAt = now;
-    if (state.tokens < 1) return false;
-    state.tokens -= 1;
+    bucket.tokens = Math.min(rate, bucket.tokens + ((now - bucket.refilledAt) / 1000) * rate);
+    bucket.refilledAt = now;
+    if (bucket.tokens < 1) return false;
+    bucket.tokens -= 1;
     return true;
+  }
+
+  // Ігровий input: бінарний кадр або JSON — залежно від кодека, обраного при вході.
+  function handleInput(ws, input) {
+    if (!ws.state.room) return closeWith(ws, CLOSE.BAD_MESSAGE, 'join first');
+    if (!takeToken(ws.state.inputBucket, INPUT_RATE)) {
+      return closeWith(ws, CLOSE.RATE_LIMIT, 'input rate limit exceeded');
+    }
+    matches.get(ws.state.room.id)?.pushInput(ws.state.player.id, input);
+    return undefined;
   }
 
   function detach(ws) {
@@ -99,14 +118,35 @@ export function attachWebSocket({ server, rooms, config, logger }) {
       if (!socketsByRoom.has(room.id)) socketsByRoom.set(room.id, new Set());
       socketsByRoom.get(room.id).add(ws);
 
-      send(ws, 'welcome', { playerId: ws.state.id, room: room.toJSON() });
-      room.join(ws.state.player); // → подія 'join' → roster усім, включно з новачком
+      // room.join → подія 'join': спершу матч створює героя (він підписаний раніше),
+      // потім розсилається roster уже з shipId.
+      const joined = room.join(ws.state.player);
+      const codec = CODECS[message.codec ?? 'binary'];
+      matches.get(room.id)?.attach(ws.state.player.id, {
+        codec,
+        send: (data, options) => sendRaw(ws, data, options),
+      });
+      send(ws, 'welcome', {
+        playerId: ws.state.id,
+        shipId: joined.shipId,
+        room: room.toJSON(),
+        tickRate: TICK_RATE,
+        codec: codec.name,
+      });
       logger.info('player joined', { room: room.id, player: ws.state.player });
     },
 
     chat(ws, message) {
       if (!ws.state.room) return closeWith(ws, CLOSE.BAD_MESSAGE, 'join first');
       ws.state.room.chat(ws.state.player.id, message.text.trim());
+    },
+
+    ping(ws, message) {
+      send(ws, 'pong', { t: message.t });
+    },
+
+    input(ws, message) {
+      handleInput(ws, message.input);
     },
 
     leave(ws) {
@@ -122,8 +162,8 @@ export function attachWebSocket({ server, rooms, config, logger }) {
       player: null,
       room: null,
       missedPongs: 0,
-      tokens: config.rateLimitPerSecond,
-      refilledAt: performance.now(),
+      bucket: { tokens: config.rateLimitPerSecond, refilledAt: performance.now() },
+      inputBucket: { tokens: INPUT_RATE, refilledAt: performance.now() },
       dropped: 0,
       joinTimer: null,
     };
@@ -145,9 +185,23 @@ export function attachWebSocket({ server, rooms, config, logger }) {
     });
 
     ws.on('message', (data, isBinary) => {
-      if (!takeToken(ws.state)) return closeWith(ws, CLOSE.RATE_LIMIT, 'rate limit exceeded');
-      const parsed = parseClientMessage(data, isBinary);
+      if (isBinary) {
+        let input;
+        try {
+          input = CODECS.binary.decodeInput(data);
+        } catch (error) {
+          return closeWith(ws, CLOSE.BAD_MESSAGE, error.message);
+        }
+        return handleInput(ws, input);
+      }
+      const parsed = parseClientMessage(data);
       if (!parsed.ok) return closeWith(ws, parsed.code, parsed.reason);
+      if (
+        parsed.message.type !== 'input' &&
+        !takeToken(ws.state.bucket, config.rateLimitPerSecond)
+      ) {
+        return closeWith(ws, CLOSE.RATE_LIMIT, 'rate limit exceeded');
+      }
       try {
         handlers[parsed.message.type](ws, parsed.message);
       } catch (error) {

@@ -155,6 +155,7 @@ export class Lobby extends EventTarget {
         room: welcome.room,
         name: cleanName,
         playerId: welcome.playerId,
+        welcome,
         connection,
       });
       return welcome.room;

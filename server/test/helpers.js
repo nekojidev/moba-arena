@@ -35,8 +35,14 @@ export async function connect(url, options) {
   const socket = new WebSocket(url, options);
   const inbox = [];
   const waiters = [];
-  socket.on('message', (data) => {
+  const snapshots = [];
+  socket.on('message', (data, isBinary) => {
+    if (isBinary) {
+      snapshots.push(data);
+      return;
+    }
     const message = JSON.parse(data.toString());
+    if (message.type === 'events' || message.type === 'snapshot') return;
     const index = waiters.findIndex((waiter) => waiter.type === message.type);
     if (index >= 0) waiters.splice(index, 1)[0].resolve(message);
     else inbox.push(message);
@@ -45,7 +51,8 @@ export async function connect(url, options) {
   await once(socket, 'open');
   return {
     socket,
-    send: (message) => socket.send(JSON.stringify({ v: 0, ...message })),
+    snapshots,
+    send: (message) => socket.send(JSON.stringify({ v: 1, ...message })),
     next(type) {
       const index = inbox.findIndex((message) => message.type === type);
       if (index >= 0) return Promise.resolve(inbox.splice(index, 1)[0]);

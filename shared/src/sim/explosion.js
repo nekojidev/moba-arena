@@ -1,3 +1,4 @@
+import { cos, sin } from './dmath.js';
 import { Entity } from './entity.js';
 
 // Вибух — одна сутність із багатьма короткоживучими частинками.
@@ -15,8 +16,8 @@ export class Explosion extends Entity {
       this.particles.push({
         x: 0,
         y: 0,
-        vx: Math.cos(angle) * velocity,
-        vy: Math.sin(angle) * velocity,
+        vx: cos(angle) * velocity,
+        vy: sin(angle) * velocity,
         life,
         maxLife: life,
       });

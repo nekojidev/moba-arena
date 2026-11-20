@@ -1,0 +1,12 @@
+{
+  "name": "@moba-arena/shared",
+  "private": true,
+  "version": "0.5.0",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

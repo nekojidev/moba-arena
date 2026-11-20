@@ -34,6 +34,29 @@ function spawnPickup(world) {
   return world.spawn(new Pickup({ pos: world.findSafeSpot(18, 80), effect }));
 }
 
+// «Директор» матчу: тримає на арені потрібну кількість големів і рун.
+// Спільний для локальної гри й сервера; випадковість — лише з генератора світу.
+export function createDirector(world, { asteroids = 5, pickups = 2 } = {}) {
+  for (let i = 0; i < asteroids; i += 1) spawnAsteroid(world);
+  let asteroidTimer = ASTEROID_INTERVAL;
+  let pickupTimer = PICKUP_INTERVAL / 2;
+
+  return {
+    tick(dt) {
+      asteroidTimer -= dt;
+      if (asteroidTimer <= 0) {
+        asteroidTimer = ASTEROID_INTERVAL;
+        if (world.count('asteroid') < asteroids) spawnAsteroid(world);
+      }
+      pickupTimer -= dt;
+      if (pickupTimer <= 0) {
+        pickupTimer = PICKUP_INTERVAL;
+        if (world.count('pickup') < pickups) spawnPickup(world);
+      }
+    },
+  };
+}
+
 // Конфіг матчу приходить ззовні (у Lab 3 — з кімнати лобі, далі — із сервера).
 // `empty: true` — порожня арена з одним героєм у центрі (бенчмарк із Lab 1).
 export function createGame({
@@ -82,26 +105,12 @@ export function createGame({
       name: 'Бот',
     }),
   );
-  for (let i = 0; i < asteroids; i += 1) spawnAsteroid(world);
-
-  let asteroidTimer = ASTEROID_INTERVAL;
-  let pickupTimer = PICKUP_INTERVAL / 2;
+  const director = createDirector(world, { asteroids, pickups });
 
   function step(dt, playerCommand) {
     inputs.set(player.id, playerCommand);
     inputs.set(bot.id, botCommand(bot, world));
-
-    asteroidTimer -= dt;
-    if (asteroidTimer <= 0) {
-      asteroidTimer = ASTEROID_INTERVAL;
-      if (world.count('asteroid') < asteroids) spawnAsteroid(world);
-    }
-    pickupTimer -= dt;
-    if (pickupTimer <= 0) {
-      pickupTimer = PICKUP_INTERVAL;
-      if (world.count('pickup') < pickups) spawnPickup(world);
-    }
-
+    director.tick(dt);
     world.step(dt, inputs);
   }
 

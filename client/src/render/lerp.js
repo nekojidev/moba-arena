@@ -1,4 +1,4 @@
-import { shortestDelta, wrap } from '../sim/arena.js';
+import { shortestDelta, wrap } from '@moba-arena/shared/sim/arena.js';
 
 const TAU = Math.PI * 2;
 

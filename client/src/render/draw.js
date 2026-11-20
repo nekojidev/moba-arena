@@ -2,7 +2,7 @@
 // Кожна drawX(ctx, entity, pose, timeMs, sprites): pose — інтерпольовані { x, y, angle }.
 // Якщо спрайта немає (не завантажився) — малюємо запасний векторний варіант з Lab 2.
 
-import { isHoming } from '../sim/behaviors.js';
+import { isHoming } from '@moba-arena/shared/sim/behaviors.js';
 import { NO_SPRITES } from './sprites.js';
 
 const TAU = Math.PI * 2;

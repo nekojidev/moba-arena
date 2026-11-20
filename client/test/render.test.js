@@ -2,8 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createGame } from '../src/sim/game.js';
-import { ARENA } from '../src/sim/arena.js';
+import { createGame } from '@moba-arena/shared/sim/game.js';
+import { ARENA } from '@moba-arena/shared/sim/arena.js';
 import { lerpPose } from '../src/render/lerp.js';
 import * as draw from '../src/render/draw.js';
 

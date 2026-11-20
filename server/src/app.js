@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { createRequestHandler } from './api.js';
 import { MatchLogs } from './log/matchlog.js';
 import { createLogger } from './logger.js';
+import { MatchManager } from './match.js';
 import { RoomManager } from './rooms.js';
 import { attachWebSocket } from './ws.js';
 
@@ -40,11 +41,15 @@ export async function createApp(
   const logs = new MatchLogs({ dir: config.logDir, rooms, logger });
   await logs.init();
 
+  // Порядок важливий: матчі підписуються на події кімнат РАНІШЕ за мережевий шар,
+  // щоб на момент розсилки roster герой гравця вже існував.
+  const matches = new MatchManager({ rooms, logger });
+
   const server = createServer();
-  const ws = attachWebSocket({ server, rooms, config, logger });
+  const ws = attachWebSocket({ server, rooms, matches, config, logger });
   server.on(
     'request',
-    createRequestHandler({ config, rooms, ws, logs, logger, startedAt: Date.now() }),
+    createRequestHandler({ config, rooms, matches, ws, logs, logger, startedAt: Date.now() }),
   );
   // Зламаний HTTP-запит (сміття замість заголовків) — не привід падати.
   server.on('clientError', (error, socket) => {
@@ -65,6 +70,7 @@ export async function createApp(
   // (3) дописати логи, (4) дочекатися, поки HTTP-сервер відпустить усі з'єднання.
   async function close() {
     const closed = new Promise((resolve) => server.close(resolve));
+    matches.closeAll();
     await ws.close();
     await logs.closeAll(rooms);
     server.closeIdleConnections();
@@ -73,5 +79,5 @@ export async function createApp(
     clearTimeout(force);
   }
 
-  return { server, rooms, ws, logs, logger, listen, close };
+  return { server, rooms, matches, ws, logs, logger, listen, close };
 }

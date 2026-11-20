@@ -14,7 +14,7 @@ const server = await spawnServer({ DEBUG_ROUTES: '1', RATE_LIMIT_PER_SECOND: '10
 async function join(name) {
   const socket = new WebSocket(server.wsUrl);
   await once(socket, 'open');
-  socket.send(JSON.stringify({ v: 0, type: 'join', room: 'mid', name }));
+  socket.send(JSON.stringify({ v: 1, type: 'join', room: 'mid', name }));
   return socket;
 }
 
@@ -25,7 +25,8 @@ await sleep(200);
 const sentAt = new Map();
 const latencies = []; // { at, ms }
 const started = performance.now();
-boris.on('message', (data) => {
+boris.on('message', (data, isBinary) => {
+  if (isBinary) return; // знімки стану (Lab 5) тут не потрібні
   const message = JSON.parse(data.toString());
   if (message.type !== 'chat') return;
   const sent = sentAt.get(message.text);
@@ -36,7 +37,7 @@ let counter = 0;
 const ticker = setInterval(() => {
   const text = `ping ${(counter += 1)}`;
   sentAt.set(text, performance.now());
-  anna.send(JSON.stringify({ v: 0, type: 'chat', text }));
+  anna.send(JSON.stringify({ v: 1, type: 'chat', text }));
 }, 50);
 
 const blocks = [];

@@ -1,3 +1,5 @@
+import { atan2, cos, hypot, sin } from './dmath.js';
+
 // Двовимірний вектор. Усі методи чисті: повертають НОВИЙ вектор і не чіпають ні this,
 // ні аргумент. Завдяки цьому вектор можна безпечно ділити між сутностями
 // (prevPos = pos — це не копія, і це нормально, бо ніхто його не змінить).
@@ -11,7 +13,7 @@ export class Vector2 {
   }
 
   static fromAngle(angle, length = 1) {
-    return new Vector2(Math.cos(angle) * length, Math.sin(angle) * length);
+    return new Vector2(cos(angle) * length, sin(angle) * length);
   }
 
   add(other) {
@@ -31,7 +33,7 @@ export class Vector2 {
   }
 
   length() {
-    return Math.hypot(this.x, this.y);
+    return hypot(this.x, this.y);
   }
 
   normalize() {
@@ -40,12 +42,12 @@ export class Vector2 {
   }
 
   rotate(angle) {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    return new Vector2(this.x * cos - this.y * sin, this.x * sin + this.y * cos);
+    const c = cos(angle);
+    const s = sin(angle);
+    return new Vector2(this.x * c - this.y * s, this.x * s + this.y * c);
   }
 
   angle() {
-    return Math.atan2(this.y, this.x);
+    return atan2(this.y, this.x);
   }
 }

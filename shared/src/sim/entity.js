@@ -10,8 +10,9 @@ export class Entity {
   // і ззовні його не прочитати й не зіпсувати (Entity.#nextId поза класом — SyntaxError).
   static #nextId = 1;
 
-  constructor({ kind, pos, vel = Vector2.ZERO, angle = 0, radius = 1 }) {
-    this.id = Entity.#nextId++;
+  // id можна передати явно (клієнт відтворює сутність, якій id уже видав сервер).
+  constructor({ id, kind, pos, vel = Vector2.ZERO, angle = 0, radius = 1 }) {
+    this.id = id ?? Entity.#nextId++;
     this.kind = kind;
     this.pos = pos;
     this.vel = vel;

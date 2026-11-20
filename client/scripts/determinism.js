@@ -4,8 +4,8 @@
 //
 //   npm run determinism
 
-import { createGame } from '../src/sim/game.js';
-import { BENCH_COMMAND, BENCH_DURATION } from '../src/sim/bench.js';
+import { createGame } from '@moba-arena/shared/sim/game.js';
+import { BENCH_COMMAND, BENCH_DURATION } from '@moba-arena/shared/sim/bench.js';
 
 const STEP = 1 / 60;
 

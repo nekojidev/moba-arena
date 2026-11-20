@@ -14,8 +14,8 @@ test('SIGTERM: код 0, клієнт отримує 1001, лог матчу ц�
     const server = await spawnServer({ LOG_DIR: dir, LOG_LEVEL: 'info' });
     const socket = new WebSocket(server.wsUrl);
     await once(socket, 'open');
-    socket.send(JSON.stringify({ v: 0, type: 'join', room: 'mid', name: 'Анна' }));
-    socket.send(JSON.stringify({ v: 0, type: 'chat', text: 'перед зупинкою' }));
+    socket.send(JSON.stringify({ v: 1, type: 'join', room: 'mid', name: 'Анна' }));
+    socket.send(JSON.stringify({ v: 1, type: 'chat', text: 'перед зупинкою' }));
     await once(socket, 'message');
     await new Promise((resolve) => setTimeout(resolve, 100));
 

@@ -13,7 +13,11 @@ test('два клієнти заходять в одну кімнату: бач�
     anna.send({ type: 'join', room: 'mid', name: 'Анна' });
     const welcome = await anna.next('welcome');
     assert.equal(welcome.room.id, 'mid');
-    assert.deepEqual((await anna.next('roster')).players, [{ id: welcome.playerId, name: 'Анна' }]);
+    assert.deepEqual((await anna.next('roster')).players, [
+      { id: welcome.playerId, name: 'Анна', shipId: welcome.shipId },
+    ]);
+    assert.equal(welcome.tickRate, 30);
+    assert.equal(welcome.codec, 'binary');
 
     const boris = await connect(ctx.wsUrl);
     boris.send({ type: 'join', room: 'mid', name: 'Борис' });
@@ -163,8 +167,9 @@ test('повільному клієнту некритичне не шлемо',
     fast.send({ type: 'chat', text: 'це дійде лише швидкому' });
     assert.equal((await fast.next('chat')).text, 'це дійде лише швидкому');
     await sleep(50);
-    assert.equal(ctx.app.ws.stats.dropped, 1);
-    assert.equal(serverSide.state.dropped, 1);
+    // Крім чату, повільному не йдуть і знімки стану — вони теж некритичні.
+    assert.ok(serverSide.state.dropped >= 1);
+    assert.equal(ctx.app.ws.stats.dropped, serverSide.state.dropped);
 
     // Критичне (roster) повільному все одно йде.
     fast.socket.close();

@@ -412,9 +412,9 @@ test('Lobby.createRoom: POST, потім оновлення списку; пом
 });
 
 test('Шина подій світу: fired / hit / exploded / score приходять синхронно', async () => {
-  const { World } = await import('../src/sim/world.js');
-  const { Ship } = await import('../src/sim/ship.js');
-  const { Vector2 } = await import('../src/sim/vector.js');
+  const { World } = await import('@moba-arena/shared/sim/world.js');
+  const { Ship } = await import('@moba-arena/shared/sim/ship.js');
+  const { Vector2 } = await import('@moba-arena/shared/sim/vector.js');
   const world = new World({ arena: { width: 1600, height: 900 } });
   const shooter = world.spawn(new Ship({ pos: new Vector2(300, 400), angle: 0 }));
   const victim = world.spawn(new Ship({ pos: new Vector2(420, 400), team: 'red' }));

@@ -81,7 +81,7 @@ function parseRoomRequest(buffer) {
   return { name, arena };
 }
 
-export function createRequestHandler({ config, rooms, ws, logs, logger, startedAt }) {
+export function createRequestHandler({ config, rooms, matches, ws, logs, logger, startedAt }) {
   async function route(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const { pathname } = url;
@@ -97,6 +97,11 @@ export function createRequestHandler({ config, rooms, ws, logs, logger, startedA
         openLogs: logs.activeCount,
         rss: process.memoryUsage().rss,
       });
+    }
+
+    // Як почувається сервер: тривалість кроку матчу і запізнення відносно цільового часу.
+    if (pathname === '/api/stats' && method === 'GET') {
+      return sendJson(response, 200, { matches: matches.report(), sockets: ws.stats });
     }
 
     if (pathname === '/api/rooms' && method === 'GET') {

@@ -83,24 +83,35 @@ function bounce(a, b, world) {
 }
 
 function destroyShip(ship, world, killerId) {
-  world.spawn(
-    new Explosion({
-      pos: ship.pos,
-      rng: world.rng,
-      count: 36,
-      speed: 260,
-      color: ship.team === 'green' ? '#7ef0c0' : '#ff8a7a',
-    }),
-  );
-  world.emit('exploded', { kind: 'ship', id: ship.id, killerId });
+  if (world.cosmetics) {
+    world.spawn(
+      new Explosion({
+        pos: ship.pos,
+        rng: world.rng,
+        count: 36,
+        speed: 260,
+        color: ship.team === 'green' ? '#7ef0c0' : '#ff8a7a',
+      }),
+    );
+  }
+  world.emit('exploded', { kind: 'ship', id: ship.id, killerId, x: ship.pos.x, y: ship.pos.y });
   ship.goDown(); // герой лишається у світі (його id потрібен вводу й рахунку), але «лежить» 2 с
   if (killerId !== null) world.addScore(killerId, SCORE_SHIP);
 }
 
 function destroyAsteroid(asteroid, world, killerId) {
   world.despawn(asteroid.id);
-  world.emit('exploded', { kind: 'asteroid', id: asteroid.id, killerId });
-  world.spawn(new Explosion({ pos: asteroid.pos, rng: world.rng, count: 8 + asteroid.size * 6 }));
+  world.emit('exploded', {
+    kind: 'asteroid',
+    id: asteroid.id,
+    killerId,
+    x: asteroid.pos.x,
+    y: asteroid.pos.y,
+    size: asteroid.size,
+  });
+  if (world.cosmetics) {
+    world.spawn(new Explosion({ pos: asteroid.pos, rng: world.rng, count: 8 + asteroid.size * 6 }));
+  }
   world.addScore(killerId, SCORE_ASTEROID * asteroid.size);
 
   if (asteroid.size > 1) {

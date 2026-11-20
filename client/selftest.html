@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MOBA Arena — перевірка детермінізму</title>
+    <style>
+      body {
+        font:
+          15px/1.6 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+        background: #0b100d;
+        color: #d7f5df;
+        max-width: 640px;
+        margin: 48px auto;
+        padding: 0 16px;
+      }
+      .ok {
+        color: #3fd6a3;
+      }
+      .fail {
+        color: #e2574c;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Детермінізм: браузер проти Node</h1>
+    <p>
+      Той самий заскриптований матч (600 кроків по 1/30 с, seed 2026) із пакета
+      <code>shared</code>. У Node його хеш перевіряє тест
+      <code>shared/test/determinism.test.js</code>.
+    </p>
+    <p id="result">Рахую…</p>
+    <script type="module">
+      import { runSelftest, SELFTEST_HASH } from '@moba-arena/shared/sim/selftest.js';
+
+      const EXPECTED = SELFTEST_HASH; // те саме значення перевіряє тест у Node
+      const started = performance.now();
+      const result = runSelftest();
+      const ok = result.hash === EXPECTED;
+      const line = document.querySelector('#result');
+      line.className = ok ? 'ok' : 'fail';
+      line.textContent =
+        `хеш у браузері: ${result.hash} · очікуваний: ${EXPECTED} · ` +
+        `${ok ? 'ЗБІГАЄТЬСЯ' : 'НЕ ЗБІГАЄТЬСЯ'} · сутностей ${result.entities}, ` +
+        `${(performance.now() - started).toFixed(0)} мс`;
+      window.__selftest = { ...result, expected: EXPECTED, ok };
+    </script>
+  </body>
+</html>

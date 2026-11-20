@@ -40,7 +40,10 @@ export class Room extends EventEmitter {
   }
 
   roster() {
-    return [...this.players.values()].map(({ id, name }) => ({ id, name }));
+    // shipId проставляє матч (id сутності героя у світі) — за ним клієнт підписує героїв.
+    return [...this.players.values()].map(({ id, name, shipId }) =>
+      shipId === undefined ? { id, name } : { id, name, shipId },
+    );
   }
 
   // Те, що бачить клієнт у списку кімнат.

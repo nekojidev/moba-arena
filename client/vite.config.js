@@ -61,6 +61,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         puzzles: resolve(import.meta.dirname, 'puzzles.html'),
+        selftest: resolve(import.meta.dirname, 'selftest.html'),
       },
     },
   },

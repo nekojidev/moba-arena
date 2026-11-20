@@ -36,12 +36,12 @@ test('config: усі помилки одразу, зі зрозумілим те
 });
 
 test('protocol: коректні повідомлення проходять', () => {
-  const join = parseClientMessage(Buffer.from('{"v":0,"type":"join","room":"mid","name":"Маг"}'));
-  assert.deepEqual(join, { ok: true, message: { v: 0, type: 'join', room: 'mid', name: 'Маг' } });
-  assert.equal(parseClientMessage('{"v":0,"type":"chat","text":"gg"}').ok, true);
-  assert.equal(parseClientMessage('{"v":0,"type":"leave"}').ok, true);
+  const join = parseClientMessage(Buffer.from('{"v":1,"type":"join","room":"mid","name":"Маг"}'));
+  assert.deepEqual(join, { ok: true, message: { v: 1, type: 'join', room: 'mid', name: 'Маг' } });
+  assert.equal(parseClientMessage('{"v":1,"type":"chat","text":"gg"}').ok, true);
+  assert.equal(parseClientMessage('{"v":1,"type":"leave"}').ok, true);
   assert.deepEqual(JSON.parse(serverMessage('roster', { players: [] })), {
-    v: 0,
+    v: 1,
     type: 'roster',
     players: [],
   });
@@ -53,16 +53,16 @@ test('protocol: кожен вид сміття відхиляється зі с�
   assert.equal(code('null'), CLOSE.BAD_MESSAGE);
   assert.equal(code('[1,2]'), CLOSE.BAD_MESSAGE);
   assert.equal(code('{"type":"chat","text":"x"}'), CLOSE.VERSION);
-  assert.equal(code('{"v":1,"type":"chat","text":"x"}'), CLOSE.VERSION);
-  assert.equal(code('{"v":0,"type":"teleport"}'), CLOSE.UNKNOWN_TYPE);
-  assert.equal(code('{"v":0,"type":"constructor"}'), CLOSE.UNKNOWN_TYPE);
-  assert.equal(code('{"v":0}'), CLOSE.UNKNOWN_TYPE);
-  assert.equal(code('{"v":0,"type":"chat"}'), CLOSE.BAD_MESSAGE);
-  assert.equal(code('{"v":0,"type":"chat","text":42}'), CLOSE.BAD_MESSAGE);
-  assert.equal(code('{"v":0,"type":"chat","text":"   "}'), CLOSE.BAD_MESSAGE);
-  assert.equal(code(`{"v":0,"type":"chat","text":"${'x'.repeat(201)}"}`), CLOSE.BAD_MESSAGE);
-  assert.equal(code('{"v":0,"type":"chat","text":"x","admin":true}'), CLOSE.BAD_MESSAGE);
-  assert.equal(code('{"v":0,"type":"join","room":"mid","name":"x"}'), CLOSE.BAD_MESSAGE);
+  assert.equal(code('{"v":0,"type":"chat","text":"x"}'), CLOSE.VERSION);
+  assert.equal(code('{"v":1,"type":"teleport"}'), CLOSE.UNKNOWN_TYPE);
+  assert.equal(code('{"v":1,"type":"constructor"}'), CLOSE.UNKNOWN_TYPE);
+  assert.equal(code('{"v":1}'), CLOSE.UNKNOWN_TYPE);
+  assert.equal(code('{"v":1,"type":"chat"}'), CLOSE.BAD_MESSAGE);
+  assert.equal(code('{"v":1,"type":"chat","text":42}'), CLOSE.BAD_MESSAGE);
+  assert.equal(code('{"v":1,"type":"chat","text":"   "}'), CLOSE.BAD_MESSAGE);
+  assert.equal(code(`{"v":1,"type":"chat","text":"${'x'.repeat(201)}"}`), CLOSE.BAD_MESSAGE);
+  assert.equal(code('{"v":1,"type":"chat","text":"x","admin":true}'), CLOSE.BAD_MESSAGE);
+  assert.equal(code('{"v":1,"type":"join","room":"mid","name":"x"}'), CLOSE.BAD_MESSAGE);
   assert.equal(code(Buffer.from([1, 2, 3]), true), CLOSE.BAD_MESSAGE);
 });
 

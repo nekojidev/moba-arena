@@ -18,12 +18,18 @@ export default [
   {
     // Симуляція не має права торкатися DOM: жодних браузерних глобалів.
     // EventTarget і CustomEvent — не DOM: вони є і в Node, тому шині подій дозволені.
-    files: ['client/src/sim/**'],
+    files: ['shared/src/**'],
     languageOptions: { globals: { EventTarget: 'readonly', CustomEvent: 'readonly' } },
     rules: { 'no-undef': 'error' },
   },
   {
-    files: ['client/scripts/**', 'client/test/**', 'client/vite.config.js', 'server/**'],
+    files: [
+      'client/scripts/**',
+      'client/test/**',
+      'client/vite.config.js',
+      'server/**',
+      'shared/test/**',
+    ],
     languageOptions: { globals: globals.node },
   },
 ];

@@ -4,8 +4,8 @@
 import { createLoop } from './loop.js';
 import { createInput } from './input.js';
 import { createHud } from './hud.js';
-import { createGame } from './sim/game.js';
-import { BENCH_COMMAND, BENCH_DURATION } from './sim/bench.js';
+import { createGame } from '@moba-arena/shared/sim/game.js';
+import { BENCH_COMMAND, BENCH_DURATION } from '@moba-arena/shared/sim/bench.js';
 import { fitArena } from './render/canvas.js';
 import { lerpPose } from './render/lerp.js';
 import {

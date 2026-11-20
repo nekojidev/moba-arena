@@ -11,6 +11,7 @@ import { mountLobbyView } from './lobby/view.js';
 import { setupCanvas } from './render/canvas.js';
 import { createSprites } from './render/sprites.js';
 import { describeError, runLoadingScreen } from './screens/loading.js';
+import { startNetGame } from './netplay.js';
 import { startGame } from './play.js';
 
 const params = new URLSearchParams(window.location.search);
@@ -44,6 +45,9 @@ const warnings = failures.map(
 // 2. Лобі. Режими експериментів Lab 1 (?exp, ?bench) його пропускають і грають без сервера.
 const socketUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
+// ?codec=json — ігрові повідомлення текстом, щоб порівняти з бінарним форматом.
+const codec = params.get('codec') === 'json' ? 'json' : 'binary';
+
 async function chooseRoom() {
   if (params.has('exp') || params.has('bench')) {
     return { name: 'Гравець', room: { name: 'локальна', arena: {} }, connection: null };
@@ -52,7 +56,10 @@ async function chooseRoom() {
     url: new URL('api/rooms', document.baseURI).href,
     // hello надсилається після КОЖНОГО відкриття сокета — отже, і після перепідключення.
     connect: ({ roomId, name }) =>
-      createConnection({ url: socketUrl, hello: () => ({ type: 'join', room: roomId, name }) }),
+      createConnection({
+        url: socketUrl,
+        hello: () => ({ type: 'join', room: roomId, name, codec }),
+      }),
   });
   const lobbyView = mountLobbyView(lobby, document.querySelector('#lobby'));
   lobby.start();
@@ -61,29 +68,29 @@ async function chooseRoom() {
   return joined.detail;
 }
 
-const { name, room, connection, playerId } = await chooseRoom();
+const { name, room, connection, playerId, welcome } = await chooseRoom();
 
-// 3. Гра з конфігом арени: значення кімнати перекривають типові з arena.json.
+// 3. Гра. З сервером — мережева (світ рахує він); без нього — локальна з Lab 1–3.
 document.querySelector('#modes').hidden = false;
-const game = startGame({
-  ctx,
-  view,
-  sprites,
-  audio,
-  config: { ...assets.arena, ...room.arena },
-  playerName: name,
-  roomName: room.name,
-  warnings,
-  params,
-});
-
-console.log(`[game] кімната «${room.name}», ассети за ${elapsedMs.toFixed(0)} мс (${strategy})`);
-
-// Координати героїв мережею ще не ходять (це Lab 5): кожне вікно грає свій локальний матч,
-// а спільні в кімнаті — склад гравців і чат.
+let game;
 if (connection) {
+  game = startNetGame({ ctx, view, sprites, audio, connection, welcome, playerName: name, params });
+  for (const warning of warnings) console.warn(warning);
   mountChat(connection, document.querySelector('#chat'), { playerId, roomName: room.name });
   window.addEventListener('pagehide', () => connection.close());
+} else {
+  game = startGame({
+    ctx,
+    view,
+    sprites,
+    audio,
+    config: { ...assets.arena, ...room.arena },
+    playerName: name,
+    roomName: room.name,
+    warnings,
+    params,
+  });
 }
 
-window.__game = { ...game, audio, connection }; // для налагодження з консолі
+console.log(`[game] кімната «${room.name}», ассети за ${elapsedMs.toFixed(0)} мс (${strategy})`);
+window.__game = { game, audio, connection }; // для налагодження з консолі

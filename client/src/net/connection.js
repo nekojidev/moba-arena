@@ -7,7 +7,7 @@
 // Сам WebSocket одноразовий: закрився — і все. «Перепідключення» — це новий сокет,
 // тому слухачів вішаємо не на нього, а на власний EventTarget, який живе довше.
 
-export const PROTOCOL_VERSION = 0;
+import { PROTOCOL_VERSION } from '@moba-arena/shared/protocol.js';
 
 // Після цих кодів пробувати ще раз марно: сервер відмовив саме нам, а не «зник».
 const FATAL_CODES = new Set([1000, 4000, 4001, 4003, 4004, 4005, 4006]);
@@ -52,6 +52,7 @@ export function createConnection({
     timer = null;
     setStatus(attempt === 0 ? 'connecting' : 'reconnecting', { attempt });
     const current = new WebSocketImpl(url);
+    current.binaryType = 'arraybuffer'; // бінарні кадри приходять як ArrayBuffer, а не Blob
     socket = current;
 
     current.addEventListener('open', () => {
@@ -63,6 +64,11 @@ export function createConnection({
     });
 
     current.addEventListener('message', (event) => {
+      // Бінарний кадр — ігрове повідомлення (знімок): віддаємо байти як є, розбере кодек.
+      if (typeof event.data !== 'string') {
+        emit('binary', event.data);
+        return;
+      }
       let message;
       try {
         message = JSON.parse(event.data);
@@ -113,6 +119,18 @@ export function createConnection({
     },
 
     last: (type) => last.get(type),
+
+    onBinary(handler, options) {
+      events.addEventListener('binary', (event) => handler(event.detail), options);
+    },
+
+    // Готовий кадр (байти або рядок) без черги: input, що запізнився, уже нікому не потрібен —
+    // немає зв'язку, отже просто не шлемо.
+    sendRaw(data) {
+      if (socket?.readyState !== WebSocketImpl.OPEN) return false;
+      socket.send(data);
+      return true;
+    },
 
     // Сокет ще не відкрито (або він перепідключається) — повідомлення чекає в черзі.
     // Черга обмежена: якщо зв'язку немає довго, найстаріше викидаємо.
