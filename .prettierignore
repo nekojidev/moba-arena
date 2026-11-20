@@ -3,3 +3,6 @@ node_modules
 package-lock.json
 client/public/assets/test
 logs
+playwright-report
+test-results
+dist-profile

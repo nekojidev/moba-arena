@@ -1,5 +1,5 @@
 // Клієнтська обгортка сокета проти справжнього сервера (у Node є глобальний WebSocket).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createConnection } from '../../client/src/net/connection.ts';
 import { loadConfig } from '../src/config.ts';

@@ -141,7 +141,8 @@ export class Lobby extends EventTarget {
   start(): void {
     if (this.#controller) return;
     this.#controller = new AbortController();
-    this.#poll(this.#controller.signal);
+    // void: цикл опитування сам ловить свої помилки (вони стають подією error) і не відхиляється.
+    void this.#poll(this.#controller.signal);
   }
 
   async #poll(signal: AbortSignal): Promise<void> {
@@ -242,7 +243,8 @@ export class Lobby extends EventTarget {
     } catch (error) {
       connection.close();
       this.#fail(error);
-      this.refresh(); // список міг змінитися (кімнату зайняли або видалили)
+      // Список міг змінитися (кімнату зайняли або видалили). void: refresh не відхиляється.
+      void this.refresh();
       return null;
     } finally {
       listeners.abort();

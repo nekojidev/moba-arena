@@ -1,5 +1,5 @@
 // Завантажувач і лобі без браузера: fetch підмінено, паузи й випадковість — керовані.
-import { test, beforeEach, afterEach } from 'node:test';
+import { test, beforeEach, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {

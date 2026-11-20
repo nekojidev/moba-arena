@@ -4,7 +4,7 @@
 //   • усіх інших малює трохи в минулому, між двома знімками (net/interpolation.ts);
 //   • свої снаряди показує одразу, не чекаючи сервера.
 
-import type { EntityId } from '@moba-arena/shared/brand.ts';
+import { entityId, type EntityId } from '@moba-arena/shared/brand.ts';
 import { Bus } from '@moba-arena/shared/bus.ts';
 import { CODECS, CodecError } from '@moba-arena/shared/codec/index.ts';
 import {
@@ -22,31 +22,32 @@ import {
 import { BULLET_SPEED, BULLET_TTL } from '@moba-arena/shared/sim/bullet.ts';
 import { wrap } from '@moba-arena/shared/sim/arena.ts';
 import { ASTEROID_RADIUS } from '@moba-arena/shared/sim/asteroid.ts';
-import type { GameEvents } from '@moba-arena/shared/sim/events.ts';
+import type { EffectType, GameEvents, Team } from '@moba-arena/shared/sim/events.ts';
 import { MUZZLE_OFFSET, SHIP_RADIUS } from '@moba-arena/shared/sim/ship.ts';
 import type { GameAudio } from './audio.ts';
 import { createEffects } from './effects.ts';
+import { createPool } from './pool.ts';
 import { assertNever, errorMessage } from './guards.ts';
 import { createHud, type HudWorld } from './hud.ts';
 import { createInput } from './input.ts';
 import { createLoop } from './loop.ts';
 import type { Connection } from './net/connection.ts';
 import { createInjector, PRESETS, type Injector } from './net/injector.ts';
-import { createInterpolator, createServerClock } from './net/interpolation.ts';
+import { createInterpolator, createSampleBuffer, createServerClock } from './net/interpolation.ts';
+import { createPerf, type Perf } from './perf.ts';
 import { createNetgraph, type Netgraph } from './net/netgraph.ts';
 import { createPredictor, type Perturb, type Predictor } from './net/prediction.ts';
 import { fitArena, type View } from './render/canvas.ts';
 import {
+  createTextPanel,
   drawArena,
   drawAsteroid,
   drawBullet,
-  drawHud,
   drawPickup,
   drawScore,
   drawShip,
-  type ShipView,
+  hudStatLines,
 } from './render/draw.ts';
-import type { Pose } from './render/lerp.ts';
 import type { Sprites } from './render/sprites.ts';
 
 // draw.ts упізнає самонаведення за цією позначкою
@@ -64,12 +65,24 @@ interface Ghost {
   y: number;
   prevX: number;
   prevY: number;
-  readonly vx: number;
-  readonly vy: number;
-  readonly angle: number;
+  vx: number;
+  vy: number;
+  angle: number;
   ttl: number;
   serverId: EntityId | null;
 }
+
+const newGhost = (): Ghost => ({
+  x: 0,
+  y: 0,
+  prevX: 0,
+  prevY: 0,
+  vx: 0,
+  vy: 0,
+  angle: 0,
+  ttl: 0,
+  serverId: null,
+});
 
 export interface NetGameOptions {
   readonly ctx: CanvasRenderingContext2D;
@@ -86,6 +99,7 @@ export interface NetGame {
   readonly netgraph: Netgraph;
   readonly predictor: Predictor;
   readonly injector: Injector;
+  readonly perf: Perf;
   readonly state: {
     readonly self: SelfState | null;
     readonly myShipId: EntityId;
@@ -134,6 +148,7 @@ export function startNetGame({
   const interpolator = createInterpolator({ arena });
   const clock = createServerClock();
   const netgraph = createNetgraph();
+  const perf = createPerf({ marks: params.get('perf') === 'marks' });
   const effects = createEffects();
   const subscriptions = new AbortController();
   const { signal } = subscriptions;
@@ -158,8 +173,11 @@ export function startNetGame({
 
   let self: SelfState | null = null; // останній точний стан власного героя від сервера
   const ghosts: Ghost[] = []; // власні снаряди, показані одразу
+  const ghostPool = createPool(newGhost); // привиди беремо з пулу й повертаємо туди
+  let bestOtherScore = 0;
   // id снаряда на сервері → привид (або null, якщо привида немає)
   const ownBullets = new Map<EntityId, Ghost | null>();
+  const seenBullets = new Set<EntityId>(); // один Set на весь матч, очищається на кожен знімок
   // події сервера чекають, поки до них дійде «минуле», яке ми малюємо
   const pendingEvents: { readonly time: number; readonly event: NetEvent }[] = [];
   let frameAt = performance.now();
@@ -181,8 +199,11 @@ export function startNetGame({
   // кадр; такий кадр пропускаємо. error у catch — unknown, тому перевіряємо instanceof,
   // а будь-яку іншу помилку (це вже баг у коді) кидаємо далі.
   function decodeSnapshot(data: unknown): Snapshot | null {
+    const startedAt = perf.begin();
     try {
-      return codec.decodeSnapshot(data);
+      const snapshot = codec.decodeSnapshot(data);
+      perf.end('decode', startedAt);
+      return snapshot;
     } catch (error) {
       if (!(error instanceof CodecError)) throw error;
       console.warn(`[net] відкинуто знімок: ${errorMessage(error)}`);
@@ -198,14 +219,18 @@ export function startNetGame({
     clock.observe(snapshot.tick * TICK_MS, now);
 
     self = snapshot.self;
+    const reconcileAt = perf.begin();
     const correction = snapshot.self
       ? predictor.reconcile(snapshot.self, snapshot.ack, { predict })
       : 0;
+    perf.end('reconcile', reconcileAt);
     netgraph.snapshot(now, predict ? correction : 0);
 
-    const seenBullets = new Set<EntityId>();
+    seenBullets.clear();
+    bestOtherScore = 0;
     for (const entity of snapshot.entities) {
       if (entity.kind === 'ship') {
+        if (entity.id !== myShipId) bestOtherScore = Math.max(bestOtherScore, entity.score);
         const before = lastKnown.get(entity.id);
         if (before && entity.score > before.score) {
           bus.emit('score', {
@@ -219,7 +244,13 @@ export function startNetGame({
         seenBullets.add(entity.id);
         // Сервер підтвердив наш постріл: прив'язуємо його снаряд до найстарішого привида.
         if (!ownBullets.has(entity.id)) {
-          const ghost = ghosts.find((candidate) => candidate.serverId === null) ?? null;
+          let ghost: Ghost | null = null;
+          for (const candidate of ghosts) {
+            if (candidate.serverId === null) {
+              ghost = candidate;
+              break;
+            }
+          }
           if (ghost) ghost.serverId = entity.id;
           ownBullets.set(entity.id, ghost);
         }
@@ -231,7 +262,7 @@ export function startNetGame({
       ownBullets.delete(id);
       if (!ghost) continue;
       const index = ghosts.indexOf(ghost);
-      if (index >= 0) ghosts.splice(index, 1);
+      if (index >= 0) removeGhost(index);
     }
   }
 
@@ -351,7 +382,19 @@ export function startNetGame({
     }
     if (input.justPressed('BracketLeft')) interpolationDelay = Math.max(0, interpolationDelay - 10);
     if (input.justPressed('BracketRight'))
-      interpolationDelay = Math.min(500, interpolationDelay + 10);
+      interpolationDelay = Math.min(300, interpolationDelay + 10);
+  }
+
+  // Прибирає привида зі списку (зберігаючи порядок: найстаріший — перший) і повертає в пул.
+  function removeGhost(index: number): void {
+    const ghost = ghosts[index];
+    if (!ghost) return;
+    for (let i = index; i < ghosts.length - 1; i += 1) {
+      const next = ghosts[i + 1];
+      if (next) ghosts[i] = next;
+    }
+    ghosts.length -= 1;
+    ghostPool.release(ghost);
   }
 
   function simulate(): void {
@@ -377,17 +420,18 @@ export function startNetGame({
       const sin = Math.sin(angle);
       const startX = wrap(x + cos * MUZZLE_OFFSET, arena.width);
       const startY = wrap(y + sin * MUZZLE_OFFSET, arena.height);
-      ghosts.push({
-        x: startX,
-        y: startY,
-        prevX: startX,
-        prevY: startY,
-        vx: vx + cos * BULLET_SPEED,
-        vy: vy + sin * BULLET_SPEED,
-        angle,
-        ttl: BULLET_TTL,
-        serverId: null,
-      });
+      // Об'єкт із пулу міг уже бути снарядом — заповнюємо ВСІ поля.
+      const ghost = ghostPool.acquire();
+      ghost.x = startX;
+      ghost.y = startY;
+      ghost.prevX = startX;
+      ghost.prevY = startY;
+      ghost.vx = vx + cos * BULLET_SPEED;
+      ghost.vy = vy + sin * BULLET_SPEED;
+      ghost.angle = angle;
+      ghost.ttl = BULLET_TTL;
+      ghost.serverId = null;
+      ghosts.push(ghost);
       // Привид — свій і не самонавідний (такі не передбачаємо); свої на екрані зелені.
       bus.emit('fired', { shipId: myShipId, team: 'green', homing: false });
     }
@@ -397,7 +441,7 @@ export function startNetGame({
       if (!ghost) continue;
       ghost.ttl -= DT;
       if (ghost.ttl <= 0) {
-        ghosts.splice(i, 1);
+        removeGhost(i);
         continue;
       }
       ghost.prevX = ghost.x;
@@ -409,69 +453,110 @@ export function startNetGame({
 
   // --- кадр --------------------------------------------------------------------------------
 
-  // «Картка» героя для drawShip: із запису знімка беремо лише потрібні поля.
-  function shipView(
-    record: Pick<ShipRecord, 'id' | 'hp' | 'down' | 'shield' | 'thrust'>,
-  ): ShipView {
-    return {
-      team: record.id === myShipId ? 'green' : 'red',
-      name: record.id === myShipId ? playerName : (names.get(record.id) ?? 'Бот'),
-      hp: record.hp,
-      isDown: record.down,
-      radius: SHIP_RADIUS,
-      thrust: record.thrust ? 1 : 0,
-      dashCooldown: 0,
-      hasEffect: (type) => type === 'shield' && record.shield,
-    };
+  // «Картки» для функцій малювання. Раніше на кожну сутність у кожному кадрі створювався
+  // новий об'єкт (а для героя ще й нова функція hasEffect) — сотні об'єктів на секунду.
+  // Тепер карток по одній на вид: перед викликом малювання в неї записуються значення
+  // поточної сутності. Малювання синхронне, тому одну картку безпечно перевикористовувати.
+  interface ShipCard {
+    team: Team;
+    name: string;
+    hp: number;
+    isDown: boolean;
+    radius: number;
+    thrust: number;
+    dashCooldown: number;
+    shield: boolean;
+    hasEffect(type: EffectType): boolean;
+  }
+  interface BulletCard {
+    team: Team;
+    radius: number;
+    behaviors: readonly { readonly tag?: string }[];
+  }
+  const shipCard: ShipCard = {
+    team: 'green',
+    name: '',
+    hp: 0,
+    isDown: false,
+    radius: SHIP_RADIUS,
+    thrust: 0,
+    dashCooldown: 0,
+    shield: false,
+    hasEffect: (type) => type === 'shield' && shipCard.shield,
+  };
+  const bulletCard: BulletCard = { team: 'green', radius: 5, behaviors: NOT_HOMING };
+  const asteroidCard = { id: entityId(0), radius: 0, behaviors: NOT_HOMING };
+  const pickupEffect: { type: EffectType } = { type: 'shield' };
+  const pickupCard = { effect: pickupEffect, radius: 18, ttl: 99 };
+  // Одна поза на весь рендер: перезаписується перед кожним малюванням.
+  const pose = { x: 0, y: 0, angle: 0 };
+
+  function drawShipCard(
+    id: EntityId,
+    hp: number,
+    shield: boolean,
+    thrust: boolean,
+    now: number,
+  ): void {
+    shipCard.team = id === myShipId ? 'green' : 'red';
+    shipCard.name = id === myShipId ? playerName : (names.get(id) ?? 'Бот');
+    shipCard.hp = hp;
+    shipCard.shield = shield;
+    shipCard.thrust = thrust ? 1 : 0;
+    drawShip(ctx, shipCard, pose, now, sprites);
   }
 
-  // Запис зі знімка → малюнок. switch за kind звужує record до конкретного варіанта,
-  // тож у гілці 'asteroid' є size, а в 'pickup' — effect. Новий вид сутності в протоколі
-  // без гілки тут — помилка tsc (default отримує never).
-  function drawRecord(record: SnapshotEntity, pose: Pose, now: number): void {
+  // Запис зі знімка → малюнок (поза вже лежить у `pose`). switch за kind звужує record до
+  // конкретного варіанта, тож у гілці 'asteroid' є size, а в 'pickup' — effect. Новий вид
+  // сутності в протоколі без гілки тут — помилка tsc (default отримує never).
+  function drawRecord(record: SnapshotEntity, now: number): void {
     switch (record.kind) {
       case 'ship':
-        drawShip(ctx, shipView(record), pose, now, sprites);
+        if (record.down) return;
+        drawShipCard(record.id, record.hp, record.shield, record.thrust, now);
         break;
       case 'bullet':
-        drawBullet(
-          ctx,
-          {
-            team: record.owner === myShipId ? 'green' : 'red',
-            radius: 5,
-            behaviors: record.homing ? HOMING : NOT_HOMING,
-          },
-          pose,
-          now,
-          sprites,
-        );
+        bulletCard.team = record.owner === myShipId ? 'green' : 'red';
+        bulletCard.behaviors = record.homing ? HOMING : NOT_HOMING;
+        drawBullet(ctx, bulletCard, pose, now, sprites);
         break;
       case 'asteroid':
-        drawAsteroid(
-          ctx,
-          {
-            id: record.id,
-            radius: ASTEROID_RADIUS[record.size],
-            behaviors: record.homing ? HOMING : NOT_HOMING,
-          },
-          pose,
-          now,
-          sprites,
-        );
+        asteroidCard.id = record.id;
+        asteroidCard.radius = ASTEROID_RADIUS[record.size];
+        asteroidCard.behaviors = record.homing ? HOMING : NOT_HOMING;
+        drawAsteroid(ctx, asteroidCard, pose, now, sprites);
         break;
       case 'pickup':
-        drawPickup(
-          ctx,
-          { effect: { type: record.effect }, radius: 18, ttl: 99 },
-          pose,
-          now,
-          sprites,
-        );
+        pickupEffect.type = record.effect;
+        drawPickup(ctx, pickupCard, pose, now, sprites);
         break;
       default:
         assertNever(record);
     }
   }
+
+  // Масштаб арени залежить лише від розміру вікна — перераховуємо, коли він змінився.
+  let fit = fitArena(view, arena);
+  let fitWidth = view.width;
+  let fitHeight = view.height;
+
+  // Буфер інтерполяції й текстові панелі живуть увесь матч.
+  const sample = createSampleBuffer();
+  const hudPanel = createTextPanel({
+    font: '13px ui-monospace, Menlo, Consolas, monospace',
+    lineHeight: 17,
+    extraHeight: -4,
+  });
+  let hudRefreshedAt = -Infinity;
+  const netgraphExtra = (): string[] => {
+    const { latencyMs, jitterMs, dropRate } = injector.settings;
+    return [
+      `інтерполяція ${interpolationDelay} мс${sample.starved ? '  (буфер порожній!)' : ''}`,
+      `кодек        ${codec.name}`,
+      `штучно       +${latencyMs} ± ${jitterMs} мс, втрати ${(dropRate * 100).toFixed(0)} %`,
+      `передбачення ${predict ? 'так' : 'НІ'}${perturb ? '   ⚠ chaos=random' : ''}`,
+    ];
+  };
 
   function render(alpha: number): void {
     const now = performance.now();
@@ -482,17 +567,21 @@ export function startNetGame({
 
     // «Минуле», яке малюємо: серверний час мінус затримка інтерполяції.
     const renderTime = clock.ready ? clock.now(now) - interpolationDelay : 0;
-    const sample = interpolator.sample(renderTime);
+    interpolator.sampleInto(renderTime, sample);
     for (let next = pendingEvents[0]; next && next.time <= renderTime; next = pendingEvents[0]) {
       pendingEvents.shift();
       handleEvent(next.event);
     }
 
-    const { scale, offsetX, offsetY } = fitArena(view, arena);
+    if (view.width !== fitWidth || view.height !== fitHeight) {
+      fit = fitArena(view, arena);
+      fitWidth = view.width;
+      fitHeight = view.height;
+    }
     ctx.clearRect(0, 0, view.width, view.height);
     ctx.save();
-    ctx.translate(offsetX, offsetY);
-    ctx.scale(scale, scale);
+    ctx.translate(fit.offsetX, fit.offsetY);
+    ctx.scale(fit.scale, fit.scale);
     ctx.beginPath();
     ctx.rect(0, 0, arena.width, arena.height);
     ctx.clip();
@@ -501,57 +590,53 @@ export function startNetGame({
     const me = self;
     const ownPose = predict && me && !me.down ? predictor.pose(alpha) : null;
     for (const kind of LAYERS) {
-      for (const record of sample.entities) {
-        if (record.kind !== kind) continue;
+      for (let i = 0; i < sample.count; i += 1) {
+        const record = sample.records[i];
+        if (!record || record.kind !== kind) continue;
         // Свого героя малюємо з передбачення, а не з минулого.
         if (record.id === myShipId && ownPose) continue;
         // Власний снаряд, у якого є привид, сервером не дублюємо.
         if (kind === 'bullet' && ownBullets.get(record.id)) continue;
-        drawRecord(record, record, now); // запис має x, y, angle — він сам собі поза
+        pose.x = sample.x[i] ?? record.x;
+        pose.y = sample.y[i] ?? record.y;
+        pose.angle = sample.angle[i] ?? record.angle;
+        drawRecord(record, now);
       }
       if (kind === 'bullet') {
+        bulletCard.team = 'green';
+        bulletCard.behaviors = NOT_HOMING;
         for (const ghost of ghosts) {
-          const pose = {
-            x:
-              ghost.prevX +
-              (ghost.x - ghost.prevX) * (Math.abs(ghost.x - ghost.prevX) > 200 ? 1 : alpha),
-            y:
-              ghost.prevY +
-              (ghost.y - ghost.prevY) * (Math.abs(ghost.y - ghost.prevY) > 200 ? 1 : alpha),
-            angle: ghost.angle,
-          };
-          drawBullet(ctx, { team: 'green', radius: 5, behaviors: NOT_HOMING }, pose, now, sprites);
+          // Перехід через край арени (стрибок понад 200 од.) не інтерполюємо.
+          const jumped =
+            Math.abs(ghost.x - ghost.prevX) > 200 || Math.abs(ghost.y - ghost.prevY) > 200;
+          const k = jumped ? 1 : alpha;
+          pose.x = ghost.prevX + (ghost.x - ghost.prevX) * k;
+          pose.y = ghost.prevY + (ghost.y - ghost.prevY) * k;
+          pose.angle = ghost.angle;
+          drawBullet(ctx, bulletCard, pose, now, sprites);
         }
       }
     }
     if (ownPose && me) {
-      const own = shipView({
-        id: myShipId,
-        hp: me.hp,
-        shield: me.shield,
-        down: false,
-        thrust: (predictor.state?.thrust ?? 0) > 0,
-      });
-      drawShip(ctx, own, ownPose, now, sprites);
+      pose.x = ownPose.x;
+      pose.y = ownPose.y;
+      pose.angle = ownPose.angle;
+      drawShipCard(myShipId, me.hp, me.shield, (predictor.state?.thrust ?? 0) > 0, now);
     }
     effects.draw(ctx);
     hud.drawWorld(ctx, now);
     ctx.restore();
 
     // --- поверх арени: статистика циклу, рахунок, стрічка, netgraph ------------------------
-    drawHud(ctx, loop.stats(), hudLines());
+    // Текст панелей оновлюється чотири рази на секунду, а малюється щокадру з готових рядків.
+    if (now - hudRefreshedAt >= 250) {
+      hudRefreshedAt = now;
+      hudPanel.update(ctx, [...hudStatLines(loop.stats()), ...hudLines()]);
+    }
+    hudPanel.draw(ctx, 12, 12);
     hud.drawScreen(ctx, view, now);
-    let best = 0;
-    for (const [id, record] of lastKnown) if (id !== myShipId) best = Math.max(best, record.score);
-    drawScore(ctx, view.width, lastKnown.get(myShipId)?.score ?? 0, best);
-
-    const { latencyMs, jitterMs, dropRate } = injector.settings;
-    netgraph.draw(ctx, view, now, [
-      `інтерполяція ${interpolationDelay} мс${sample.starved ? '  (буфер порожній!)' : ''}`,
-      `кодек        ${codec.name}`,
-      `штучно       +${latencyMs} ± ${jitterMs} мс, втрати ${(dropRate * 100).toFixed(0)} %`,
-      `передбачення ${predict ? 'так' : 'НІ'}${perturb ? '   ⚠ chaos=random' : ''}`,
-    ]);
+    drawScore(ctx, view.width, lastKnown.get(myShipId)?.score ?? 0, bestOtherScore);
+    netgraph.draw(ctx, view, now, netgraphExtra);
   }
 
   function hudLines(): string[] {
@@ -577,13 +662,28 @@ export function startNetGame({
   }
 
   // Цикл із Lab 1 — той самий акумулятор, лише крок тепер 1/30 с, як на сервері.
-  const loop = createLoop({ step: DT, simulate, render });
+  // Обгортки створюються один раз — на кадр нових функцій немає.
+  const loop = createLoop({
+    step: DT,
+    simulate() {
+      const startedAt = perf.begin();
+      simulate();
+      perf.end('simulate', startedAt);
+    },
+    render(alpha) {
+      perf.frame(loop.stats().frameTime);
+      const startedAt = perf.begin();
+      render(alpha);
+      perf.end('render', startedAt);
+    },
+  });
   loop.start();
 
   return {
     netgraph,
     predictor,
     injector,
+    perf,
     get state() {
       return {
         self,

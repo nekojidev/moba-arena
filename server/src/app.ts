@@ -2,12 +2,14 @@
 
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { findCollisionsHashed } from '@moba-arena/shared/sim/spatial-hash.ts';
 import { createRequestHandler } from './api.ts';
 import type { ServerConfig } from './config.ts';
 import { MatchLogs } from './log/matchlog.ts';
 import { createLogger, type Logger } from './logger.ts';
 import { MatchManager } from './match.ts';
 import { RoomManager, type CreateRoomOptions } from './rooms.ts';
+import { createRuntimeStats } from './runtime-stats.ts';
 import { attachWebSocket } from './ws.ts';
 
 // Постійні кімнати, які є завжди (не видаляються, коли порожні).
@@ -45,13 +47,27 @@ export async function createApp(
 
   // Порядок важливий: матчі підписуються на події кімнат РАНІШЕ за мережевий шар,
   // щоб на момент розсилки roster герой гравця вже існував.
-  const matches = new MatchManager({ rooms, logger });
+  const matches = new MatchManager({
+    rooms,
+    logger,
+    ...(config.collision === 'hash' ? { collide: findCollisionsHashed } : {}),
+  });
+  const runtime = createRuntimeStats();
 
   const server = createServer();
   const ws = attachWebSocket({ server, rooms, matches, config, logger });
   server.on(
     'request',
-    createRequestHandler({ config, rooms, matches, ws, logs, logger, startedAt: Date.now() }),
+    createRequestHandler({
+      config,
+      rooms,
+      matches,
+      ws,
+      logs,
+      logger,
+      runtime,
+      startedAt: Date.now(),
+    }),
   );
   // Зламаний HTTP-запит (сміття замість заголовків) — не привід падати.
   server.on('clientError', (_error, socket) => {
@@ -80,6 +96,7 @@ export async function createApp(
   async function close(): Promise<void> {
     const closed = new Promise<void>((resolve) => server.close(() => resolve()));
     matches.closeAll();
+    runtime.close();
     await ws.close();
     await logs.closeAll(rooms);
     server.closeIdleConnections();

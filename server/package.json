@@ -9,13 +9,16 @@
   "scripts": {
     "dev": "node --env-file-if-exists=.env --watch src/index.ts",
     "start": "node --env-file-if-exists=.env src/index.ts",
-    "test": "node --test",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "replay": "node scripts/replay.js",
     "bench:rss": "node scripts/rss-benchmark.js",
     "demo:block": "node scripts/block-demo.js",
     "demo:error": "node scripts/error-demo.js",
-    "bench:codec": "node scripts/codec-benchmark.js"
+    "bench:codec": "node scripts/codec-benchmark.js",
+    "bench:collision": "node scripts/collision-benchmark.js",
+    "profile": "node scripts/profile-match.js",
+    "load": "node scripts/load-test.js"
   },
   "dependencies": {
     "ws": "^8.18.0",

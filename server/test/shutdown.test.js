@@ -1,5 +1,5 @@
 // Справжній процес сервера: SIGTERM → сокети закрито, логи дописано, код завершення 0.
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';

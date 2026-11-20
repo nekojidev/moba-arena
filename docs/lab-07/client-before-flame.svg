@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="256" viewBox="0 0 1200 256">
+<rect width="1200" height="256" fill="#fcfcfb"/>
+<text x="4" y="18" font-size="13" font-weight="600" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, sans-serif">Профіль CPU клієнта (before): 8 ботів, 15 с, без простою</text>
+<g><title>frame — main-C4sCVuUt.js · 86.6 %</title><rect x="0.0" y="30" width="1038.5" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="3.0" y="43" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">frame 87%</text></g>
+<g><title>render — main-C4sCVuUt.js · 77.1 %</title><rect x="0.0" y="48" width="925.2" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="3.0" y="61" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">render 77%</text></g>
+<g><title>render — main-C4sCVuUt.js · 76.0 %</title><rect x="0.0" y="66" width="911.4" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="3.0" y="79" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">render 76%</text></g>
+<g><title>draw — main-C4sCVuUt.js · 19.4 %</title><rect x="0.0" y="84" width="231.7" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="3.0" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">draw 19%</text></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 8.2 %</title><rect x="0.0" y="102" width="98.2" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="3.0" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">(анонімна) 8%</text></g>
+<g><title>measureText —  · 7.7 %</title><rect x="0.0" y="120" width="91.7" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="3.0" y="133" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">measureText 8</text></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 3.8 %</title><rect x="98.7" y="102" width="44.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillRect —  · 2.2 %</title><rect x="98.7" y="120" width="26.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 3.6 %</title><rect x="144.0" y="102" width="43.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 3.4 %</title><rect x="144.0" y="120" width="40.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>summary — main-C4sCVuUt.js · 1.7 %</title><rect x="187.7" y="102" width="19.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>total — main-C4sCVuUt.js · 0.6 %</title><rect x="187.7" y="120" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 0.2 %</title><rect x="187.7" y="138" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>trim — main-C4sCVuUt.js · 0.2 %</title><rect x="195.0" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawRecord — main-C4sCVuUt.js · 17.4 %</title><rect x="232.2" y="84" width="208.3" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="235.2" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawRecord 17%</text></g>
+<g><title>drawShip — main-C4sCVuUt.js · 7.6 %</title><rect x="232.2" y="102" width="90.1" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="235.2" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawShip 8%</text></g>
+<g><title>fillText —  · 1.6 %</title><rect x="232.2" y="120" width="18.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 1.5 %</title><rect x="250.8" y="120" width="17.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 1.1 %</title><rect x="250.8" y="138" width="13.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.6 %</title><rect x="268.6" y="120" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>rotate —  · 0.5 %</title><rect x="275.9" y="120" width="5.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillRect —  · 0.2 %</title><rect x="281.6" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>restore —  · 0.2 %</title><rect x="284.0" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.2 %</title><rect x="286.4" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawAsteroid — main-C4sCVuUt.js · 3.1 %</title><rect x="322.9" y="102" width="36.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 1.1 %</title><rect x="322.9" y="120" width="13.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 0.8 %</title><rect x="322.9" y="138" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.8 %</title><rect x="336.6" y="120" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>rotate —  · 0.5 %</title><rect x="346.3" y="120" width="5.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>restore —  · 0.2 %</title><rect x="352.0" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>isHoming — game-Dfo4TM92.js · 0.2 %</title><rect x="354.4" y="120" width="1.9" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.1 %</title><rect x="356.8" y="120" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawBullet — main-C4sCVuUt.js · 2.8 %</title><rect x="360.1" y="102" width="33.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 1.0 %</title><rect x="360.1" y="120" width="11.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 0.8 %</title><rect x="360.1" y="138" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.8 %</title><rect x="372.2" y="120" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>rotate —  · 0.4 %</title><rect x="381.9" y="120" width="4.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.1 %</title><rect x="386.8" y="120" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawPickup — main-C4sCVuUt.js · 2.8 %</title><rect x="394.1" y="102" width="33.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 2.1 %</title><rect x="394.1" y="120" width="24.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 2.0 %</title><rect x="394.1" y="138" width="23.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>restore —  · 0.3 %</title><rect x="419.2" y="120" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.2 %</title><rect x="422.4" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>shipView — main-C4sCVuUt.js · 0.3 %</title><rect x="428.1" y="102" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawHud — main-C4sCVuUt.js · 8.0 %</title><rect x="441.0" y="84" width="95.8" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="444.0" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawHud 8%</text></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 4.5 %</title><rect x="441.0" y="102" width="53.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 4.3 %</title><rect x="441.0" y="120" width="51.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 2.4 %</title><rect x="495.2" y="102" width="28.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 2.4 %</title><rect x="495.2" y="120" width="28.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawArena — main-C4sCVuUt.js · 4.9 %</title><rect x="537.3" y="84" width="57.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawBase — main-C4sCVuUt.js · 1.4 %</title><rect x="537.3" y="102" width="16.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>restore —  · 0.6 %</title><rect x="537.3" y="120" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fill —  · 0.1 %</title><rect x="544.6" y="120" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillRect —  · 0.5 %</title><rect x="554.3" y="102" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>stroke —  · 0.3 %</title><rect x="560.8" y="102" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>moveTo —  · 0.2 %</title><rect x="564.0" y="102" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>lineTo —  · 0.1 %</title><rect x="566.4" y="102" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>sample — main-C4sCVuUt.js · 4.2 %</title><rect x="595.5" y="84" width="49.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>blend — main-C4sCVuUt.js · 2.7 %</title><rect x="595.5" y="102" width="31.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>shortestDelta — game-Dfo4TM92.js · 0.8 %</title><rect x="595.5" y="120" width="9.2" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>wrap — game-Dfo4TM92.js · 0.5 %</title><rect x="595.5" y="138" width="5.2" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>wrap — game-Dfo4TM92.js · 0.4 %</title><rect x="605.3" y="120" width="4.4" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>handleEvent — main-C4sCVuUt.js · 3.8 %</title><rect x="645.7" y="84" width="45.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>emit — game-Dfo4TM92.js · 3.7 %</title><rect x="645.7" y="102" width="44.0" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-C4sCVuUt.js · 2.0 %</title><rect x="645.7" y="120" width="23.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>play — main-C4sCVuUt.js · 1.9 %</title><rect x="645.7" y="138" width="22.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createBufferSource —  · 0.8 %</title><rect x="645.7" y="156" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createGain —  · 0.3 %</title><rect x="655.4" y="156" width="3.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>connect —  · 0.3 %</title><rect x="659.5" y="156" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-C4sCVuUt.js · 1.3 %</title><rect x="669.2" y="120" width="15.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>play — main-C4sCVuUt.js · 1.3 %</title><rect x="669.2" y="138" width="14.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createBufferSource —  · 0.9 %</title><rect x="669.2" y="156" width="10.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>connect —  · 0.2 %</title><rect x="680.5" y="156" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-C4sCVuUt.js · 0.3 %</title><rect x="685.4" y="120" width="3.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>play — main-C4sCVuUt.js · 0.3 %</title><rect x="685.4" y="138" width="3.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createBufferSource —  · 0.1 %</title><rect x="685.4" y="156" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawScreen — main-C4sCVuUt.js · 2.4 %</title><rect x="691.8" y="84" width="27.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 1.8 %</title><rect x="691.8" y="102" width="20.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 0.9 %</title><rect x="691.8" y="120" width="10.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.5 %</title><rect x="703.2" y="120" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 2.3 %</title><rect x="720.2" y="84" width="27.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fill —  · 0.4 %</title><rect x="720.2" y="102" width="4.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.3 %</title><rect x="725.0" y="102" width="3.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawScore — main-C4sCVuUt.js · 1.6 %</title><rect x="747.7" y="84" width="18.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 0.5 %</title><rect x="747.7" y="102" width="5.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.2 %</title><rect x="753.3" y="102" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>clearRect —  · 1.5 %</title><rect x="766.3" y="84" width="17.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawWorld — main-C4sCVuUt.js · 1.4 %</title><rect x="784.1" y="84" width="16.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.6 %</title><rect x="784.1" y="102" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.3 %</title><rect x="791.4" y="102" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawBullet — main-C4sCVuUt.js · 1.3 %</title><rect x="801.1" y="84" width="14.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.5 %</title><rect x="801.1" y="102" width="5.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 0.5 %</title><rect x="806.7" y="102" width="5.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 0.3 %</title><rect x="806.7" y="120" width="3.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.1 %</title><rect x="812.4" y="102" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>update — main-C4sCVuUt.js · 0.7 %</title><rect x="816.5" y="84" width="7.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawShip — main-C4sCVuUt.js · 0.7 %</title><rect x="824.5" y="84" width="7.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-C4sCVuUt.js · 0.3 %</title><rect x="824.5" y="102" width="3.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 0.2 %</title><rect x="824.5" y="120" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.2 %</title><rect x="828.6" y="102" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>scale —  · 0.7 %</title><rect x="832.6" y="84" width="7.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>clip —  · 0.5 %</title><rect x="840.7" y="84" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>hudLines — main-C4sCVuUt.js · 0.4 %</title><rect x="847.2" y="84" width="4.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.4 %</title><rect x="852.1" y="84" width="4.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>pose — main-C4sCVuUt.js · 0.3 %</title><rect x="856.9" y="84" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>rect —  · 0.1 %</title><rect x="860.1" y="84" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.1 %</title><rect x="861.8" y="84" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>end — main-C4sCVuUt.js · 0.4 %</title><rect x="911.9" y="66" width="4.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>begin — main-C4sCVuUt.js · 0.1 %</title><rect x="916.8" y="66" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>simulate — main-C4sCVuUt.js · 6.5 %</title><rect x="925.7" y="48" width="78.0" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="928.7" y="61" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">simulate 7%</text></g>
+<g><title>simulate — main-C4sCVuUt.js · 5.9 %</title><rect x="925.7" y="66" width="69.9" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="928.7" y="79" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">simulate 6</text></g>
+<g><title>pass — main-C4sCVuUt.js · 3.0 %</title><rect x="925.7" y="84" width="35.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 2.9 %</title><rect x="925.7" y="102" width="34.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>sendRaw — main-C4sCVuUt.js · 2.6 %</title><rect x="925.7" y="120" width="31.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>send —  · 2.6 %</title><rect x="925.7" y="138" width="30.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>emit — game-Dfo4TM92.js · 0.8 %</title><rect x="962.1" y="84" width="9.2" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-C4sCVuUt.js · 0.8 %</title><rect x="962.1" y="102" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>play — main-C4sCVuUt.js · 0.8 %</title><rect x="962.1" y="120" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createGain —  · 0.3 %</title><rect x="962.1" y="138" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createBufferSource —  · 0.2 %</title><rect x="965.3" y="138" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>encodeInput$1 — main-C4sCVuUt.js · 0.6 %</title><rect x="971.8" y="84" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>applyInput — main-C4sCVuUt.js · 0.6 %</title><rect x="979.1" y="84" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>step — main-C4sCVuUt.js · 0.6 %</title><rect x="979.1" y="102" width="6.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>stepInput — game-Dfo4TM92.js · 0.5 %</title><rect x="979.1" y="120" width="6.0" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>integrate — game-Dfo4TM92.js · 0.2 %</title><rect x="979.1" y="138" width="1.9" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>normalizeAngle — game-Dfo4TM92.js · 0.1 %</title><rect x="981.5" y="138" width="1.1" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>readCommand — main-C4sCVuUt.js · 0.2 %</title><rect x="986.4" y="84" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>isDown — main-C4sCVuUt.js · 0.1 %</title><rect x="986.4" y="102" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>hotkeys — main-C4sCVuUt.js · 0.1 %</title><rect x="988.8" y="84" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>begin — main-C4sCVuUt.js · 0.4 %</title><rect x="996.1" y="66" width="4.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>requestAnimationFrame —  · 1.7 %</title><rect x="1004.2" y="48" width="19.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 13.3 %</title><rect x="1039.0" y="30" width="158.9" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="1042.0" y="43" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">(анонімна) 13%</text></g>
+<g><title>emit — game-Dfo4TM92.js · 8.2 %</title><rect x="1039.0" y="48" width="97.4" height="17" fill="#1baf7a" fill-opacity="0.85"/><text x="1042.0" y="61" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">emit 8%</text></g>
+<g><title>connection.onBinary.signal.signal — main-C4sCVuUt.js · 7.7 %</title><rect x="1039.0" y="66" width="91.7" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="1042.0" y="79" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">connection.on</text></g>
+<g><title>pass — main-C4sCVuUt.js · 7.6 %</title><rect x="1039.0" y="84" width="90.1" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="1042.0" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">pass 8%</text></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 7.4 %</title><rect x="1039.0" y="102" width="88.5" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="1042.0" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">(анонімна) 7%</text></g>
+<g><title>decodeSnapshot2 — main-C4sCVuUt.js · 4.5 %</title><rect x="1039.0" y="120" width="53.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>decodeSnapshot$1 — main-C4sCVuUt.js · 4.0 %</title><rect x="1039.0" y="138" width="47.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>decodeSelf — main-C4sCVuUt.js · 1.1 %</title><rect x="1039.0" y="156" width="13.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>dequantizeAngle — main-C4sCVuUt.js · 0.2 %</title><rect x="1039.0" y="174" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>view$1 — main-C4sCVuUt.js · 0.2 %</title><rect x="1052.7" y="156" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>begin — main-C4sCVuUt.js · 0.2 %</title><rect x="1086.7" y="138" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>onSnapshot — main-C4sCVuUt.js · 2.7 %</title><rect x="1093.2" y="120" width="31.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>push — main-C4sCVuUt.js · 0.9 %</title><rect x="1093.2" y="138" width="10.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 0.1 %</title><rect x="1093.2" y="156" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>reconcile — main-C4sCVuUt.js · 0.5 %</title><rect x="1104.5" y="138" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>emit — game-Dfo4TM92.js · 0.1 %</title><rect x="1111.0" y="138" width="1.1" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>world.events.on.signal.signal — main-C4sCVuUt.js · 0.1 %</title><rect x="1111.0" y="156" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>end — main-C4sCVuUt.js · 0.1 %</title><rect x="1112.6" y="138" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>decodeSnapshot$1 — main-C4sCVuUt.js · 0.1 %</title><rect x="1125.6" y="120" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>parseServerMessage — main-C4sCVuUt.js · 3.5 %</title><rect x="1136.9" y="48" width="41.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>parseMessage — main-C4sCVuUt.js · 3.3 %</title><rect x="1136.9" y="66" width="39.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>safeParse — main-C4sCVuUt.js · 2.2 %</title><rect x="1136.9" y="84" width="26.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-C4sCVuUt.js · 2.2 %</title><rect x="1136.9" y="102" width="26.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 2.1 %</title><rect x="1136.9" y="120" width="24.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 2.0 %</title><rect x="1136.9" y="138" width="23.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) —  · 1.6 %</title><rect x="1136.9" y="156" width="18.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 1.1 %</title><rect x="1136.9" y="174" width="13.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 0.8 %</title><rect x="1136.9" y="192" width="9.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 0.5 %</title><rect x="1136.9" y="210" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) —  · 0.1 %</title><rect x="1136.9" y="228" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) —  · 0.1 %</title><rect x="1138.5" y="228" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) —  · 0.1 %</title><rect x="1140.1" y="228" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>wrapped — main-C4sCVuUt.js · 0.3 %</title><rect x="1143.4" y="210" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 0.3 %</title><rect x="1143.4" y="228" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-C4sCVuUt.js · 0.3 %</title><rect x="1150.6" y="174" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.run — main-C4sCVuUt.js · 0.2 %</title><rect x="1150.6" y="192" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>alloc — main-C4sCVuUt.js · 0.3 %</title><rect x="1155.5" y="156" width="2.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>dispatch — main-C4sCVuUt.js · 0.2 %</title><rect x="1179.0" y="48" width="1.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>emit — game-Dfo4TM92.js · 0.2 %</title><rect x="1179.0" y="66" width="1.9" height="17" fill="#1baf7a" fill-opacity="0.85"/></g>
+<g><title>connection.on.signal.signal — main-C4sCVuUt.js · 0.1 %</title><rect x="1179.0" y="84" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>onKeyDown — main-C4sCVuUt.js · 0.1 %</title><rect x="1198.4" y="30" width="1.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+</svg>

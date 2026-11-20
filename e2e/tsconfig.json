@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // Тест виконується в Node, а функції для page.evaluate — у браузері: потрібні обидва набори типів.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": [".", "../playwright.config.ts"]
+}

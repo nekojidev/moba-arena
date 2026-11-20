@@ -15,17 +15,14 @@ import {
   type Input,
 } from '@moba-arena/shared/protocol.ts';
 import type { ServerConfig } from './config.ts';
+import { createHeartbeat } from './heartbeat.ts';
 import type { Logger } from './logger.ts';
 import type { Frame, MatchManager, SendOptions } from './match.ts';
 import { RoomError, type PlayerRef, type Room, type RoomManager } from './rooms.ts';
+import { createTokenBucket, type TokenBucket } from './token-bucket.ts';
 
 // Input іде 30 разів/с — у нього власний, щедріший ліміт, ніж у чату.
 const INPUT_RATE = TICK_RATE * 3;
-
-interface Bucket {
-  tokens: number;
-  refilledAt: number;
-}
 
 // Стан одного з'єднання. Живе поруч із сокетом у WeakMap, а не як вигадане поле ws.state:
 // у типі WebSocket такого поля немає, і tsc не дав би до нього звернутись.
@@ -33,9 +30,8 @@ export interface SocketState {
   readonly id: string;
   player: PlayerRef | null;
   room: Room | null;
-  missedPongs: number;
-  readonly bucket: Bucket;
-  readonly inputBucket: Bucket;
+  readonly bucket: TokenBucket;
+  readonly inputBucket: TokenBucket;
   dropped: number;
   readonly joinTimer: NodeJS.Timeout;
 }
@@ -132,22 +128,11 @@ export function attachWebSocket({ server, rooms, matches, config, logger }: WebS
     socketsByRoom.delete(room.id);
   });
 
-  // Token bucket: відро на N жетонів, що наповнюється зі швидкістю N/с.
-  // Повідомлення коштує жетон; порожнє відро — клієнт шле занадто часто.
-  function takeToken(bucket: Bucket, rate: number): boolean {
-    const now = performance.now();
-    bucket.tokens = Math.min(rate, bucket.tokens + ((now - bucket.refilledAt) / 1000) * rate);
-    bucket.refilledAt = now;
-    if (bucket.tokens < 1) return false;
-    bucket.tokens -= 1;
-    return true;
-  }
-
   // Ігровий input: бінарний кадр або JSON — залежно від кодека, обраного при вході.
   function handleInput(ws: WebSocket, state: SocketState, input: Input): void {
     const { room, player } = state;
     if (!room || !player) return closeWith(ws, CLOSE.BAD_MESSAGE, 'join first');
-    if (!takeToken(state.inputBucket, INPUT_RATE)) {
+    if (!state.inputBucket.take()) {
       return closeWith(ws, CLOSE.RATE_LIMIT, 'input rate limit exceeded');
     }
     matches.get(room.id)?.pushInput(player.id, input);
@@ -245,9 +230,9 @@ export function attachWebSocket({ server, rooms, matches, config, logger }: WebS
       id: randomUUID().slice(0, 8),
       player: null,
       room: null,
-      missedPongs: 0,
-      bucket: { tokens: config.rateLimitPerSecond, refilledAt: performance.now() },
-      inputBucket: { tokens: INPUT_RATE, refilledAt: performance.now() },
+      // Ліміти — token bucket (див. token-bucket.ts): N жетонів, наповнення N/с.
+      bucket: createTokenBucket({ capacity: config.rateLimitPerSecond }),
+      inputBucket: createTokenBucket({ capacity: INPUT_RATE }),
       dropped: 0,
       // Сокет, який підключився й мовчить, займає місце. Даємо 5 с на join.
       joinTimer: setTimeout(
@@ -265,9 +250,7 @@ export function attachWebSocket({ server, rooms, matches, config, logger }: WebS
       logger.warn('socket error', { socket: state.id, code, error: error.message });
     });
 
-    ws.on('pong', () => {
-      state.missedPongs = 0;
-    });
+    ws.on('pong', () => heartbeat.alive(ws));
 
     ws.on('message', (data, isBinary) => {
       if (isBinary) {
@@ -284,7 +267,7 @@ export function attachWebSocket({ server, rooms, matches, config, logger }: WebS
       // Розбір не кидає винятків: поганий JSON чи не та форма — це результат { ok: false }.
       const parsed = parseClientMessage(toText(data));
       if (!parsed.ok) return closeWith(ws, parsed.code, parsed.reason);
-      if (parsed.message.type !== 'input' && !takeToken(state.bucket, config.rateLimitPerSecond)) {
+      if (parsed.message.type !== 'input' && !state.bucket.take()) {
         return closeWith(ws, CLOSE.RATE_LIMIT, 'rate limit exceeded');
       }
       try {
@@ -303,25 +286,17 @@ export function attachWebSocket({ server, rooms, matches, config, logger }: WebS
     });
   });
 
-  // Heartbeat. TCP може «висіти» годинами після того, як клієнт зник (ноутбук закрили,
-  // Wi-Fi відпав) — події close не буде. Тому раз на heartbeatMs шлемо ping;
-  // хто пропустив два pong поспіль — того terminate().
-  const heartbeat = setInterval(() => {
-    for (const ws of wss.clients) {
-      const state = states.get(ws);
-      if (!state) continue;
-      if (state.missedPongs >= 2) {
-        logger.warn('heartbeat lost', { socket: state.id });
-        ws.terminate();
-        continue;
-      }
-      state.missedPongs += 1;
-      ws.ping();
-    }
-  }, config.heartbeatMs);
+  // Heartbeat: раз на heartbeatMs — ping; два пропущені pong поспіль — terminate().
+  // Сам облік — у heartbeat.ts (там же пояснення, навіщо він узагалі потрібен).
+  const heartbeat = createHeartbeat<WebSocket>({
+    intervalMs: config.heartbeatMs,
+    peers: () => wss.clients,
+    onLost: (ws) => logger.warn('heartbeat lost', { socket: states.get(ws)?.id }),
+  });
+  heartbeat.start();
 
   async function close({ graceMs = 1000 }: { graceMs?: number } = {}): Promise<void> {
-    clearInterval(heartbeat);
+    heartbeat.stop();
     for (const ws of wss.clients) ws.close(CLOSE.GOING_AWAY, 'server is shutting down');
     // Даємо клієнтам завершити рукостискання закриття; хто не встиг — обриваємо.
     const deadline = Date.now() + graceMs;

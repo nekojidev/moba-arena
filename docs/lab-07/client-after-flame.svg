@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="256" viewBox="0 0 1200 256">
+<rect width="1200" height="256" fill="#fcfcfb"/>
+<text x="4" y="18" font-size="13" font-weight="600" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, sans-serif">Профіль CPU клієнта (after): 8 ботів, 15 с, без простою</text>
+<g><title>frame — main-DzoRmtga.js · 86.1 %</title><rect x="0.0" y="30" width="1032.1" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="3.0" y="43" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">frame 86%</text></g>
+<g><title>render — main-DzoRmtga.js · 73.7 %</title><rect x="0.0" y="48" width="883.6" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="3.0" y="61" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">render 74%</text></g>
+<g><title>render — main-DzoRmtga.js · 72.2 %</title><rect x="0.0" y="66" width="866.2" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="3.0" y="79" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">render 72%</text></g>
+<g><title>drawRecord — main-DzoRmtga.js · 21.2 %</title><rect x="0.0" y="84" width="253.8" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="3.0" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawRecord 21%</text></g>
+<g><title>drawShipCard — main-DzoRmtga.js · 11.9 %</title><rect x="0.0" y="102" width="142.3" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="3.0" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawShipCard 12%</text></g>
+<g><title>drawShip — main-DzoRmtga.js · 11.6 %</title><rect x="0.0" y="120" width="138.6" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="3.0" y="133" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawShip 12%</text></g>
+<g><title>fillText —  · 3.0 %</title><rect x="0.0" y="138" width="35.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 1.0 %</title><rect x="35.5" y="138" width="11.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 1.0 %</title><rect x="35.5" y="156" width="11.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.8 %</title><rect x="47.1" y="138" width="8.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>rotate —  · 0.4 %</title><rect x="56.5" y="138" width="3.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillRect —  · 0.3 %</title><rect x="60.9" y="138" width="3.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.3 %</title><rect x="64.5" y="138" width="3.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>restore —  · 0.3 %</title><rect x="68.1" y="138" width="3.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawPickup — main-DzoRmtga.js · 3.1 %</title><rect x="142.8" y="102" width="37.2" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 2.4 %</title><rect x="142.8" y="120" width="27.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 2.2 %</title><rect x="142.8" y="138" width="25.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.2 %</title><rect x="171.0" y="120" width="1.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawAsteroid — main-DzoRmtga.js · 2.7 %</title><rect x="180.4" y="102" width="32.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 1.0 %</title><rect x="180.4" y="120" width="11.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 0.8 %</title><rect x="180.4" y="138" width="9.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.9 %</title><rect x="192.0" y="120" width="10.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.2 %</title><rect x="202.9" y="120" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawBullet — main-DzoRmtga.js · 2.7 %</title><rect x="213.0" y="102" width="31.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 1.1 %</title><rect x="213.0" y="120" width="13.3" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 1.1 %</title><rect x="213.0" y="138" width="12.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 1.1 %</title><rect x="226.8" y="120" width="12.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 9.4 %</title><rect x="254.3" y="84" width="111.8" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="257.3" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">draw 9%</text></g>
+<g><title>draw — main-DzoRmtga.js · 5.0 %</title><rect x="254.3" y="102" width="59.6" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="257.3" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">draw 5%</text></g>
+<g><title>fillText —  · 3.9 %</title><rect x="254.3" y="120" width="45.9" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillRect —  · 1.6 %</title><rect x="314.5" y="102" width="19.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>update — main-DzoRmtga.js · 0.7 %</title><rect x="334.1" y="102" width="8.2" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 0.7 %</title><rect x="334.1" y="120" width="7.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>summary — main-DzoRmtga.js · 0.3 %</title><rect x="342.8" y="102" width="3.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.2 %</title><rect x="346.4" y="102" width="1.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 6.9 %</title><rect x="366.7" y="84" width="82.1" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="369.7" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">draw 7%</text></g>
+<g><title>fillText —  · 5.6 %</title><rect x="366.7" y="102" width="66.9" height="17" fill="#eb6834" fill-opacity="0.85"/><text x="369.7" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">fillText 6</text></g>
+<g><title>save —  · 0.2 %</title><rect x="434.1" y="102" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawArena — main-DzoRmtga.js · 6.8 %</title><rect x="449.3" y="84" width="81.4" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="452.3" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">drawArena 7%</text></g>
+<g><title>drawBase — main-DzoRmtga.js · 2.8 %</title><rect x="449.3" y="102" width="32.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>restore —  · 0.8 %</title><rect x="449.3" y="120" width="9.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.4 %</title><rect x="459.4" y="120" width="4.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fill —  · 0.4 %</title><rect x="464.5" y="120" width="4.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.3 %</title><rect x="469.6" y="120" width="3.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>stroke —  · 0.2 %</title><rect x="473.2" y="120" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>arc —  · 0.2 %</title><rect x="476.1" y="120" width="1.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>moveTo —  · 0.5 %</title><rect x="482.6" y="102" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>stroke —  · 0.5 %</title><rect x="489.1" y="102" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillRect —  · 0.2 %</title><rect x="495.7" y="102" width="1.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>handleEvent — main-DzoRmtga.js · 5.3 %</title><rect x="531.2" y="84" width="62.5" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="534.2" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">handleEve</text></g>
+<g><title>emit — game-CWo0Sj3D.js · 4.9 %</title><rect x="531.2" y="102" width="58.2" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-DzoRmtga.js · 2.5 %</title><rect x="531.2" y="120" width="29.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>play — main-DzoRmtga.js · 2.4 %</title><rect x="531.2" y="138" width="27.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>createBufferSource —  · 1.0 %</title><rect x="531.2" y="156" width="11.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>connect —  · 0.7 %</title><rect x="543.5" y="156" width="7.5" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createGain —  · 0.4 %</title><rect x="551.4" y="156" width="3.8" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-DzoRmtga.js · 1.8 %</title><rect x="561.6" y="120" width="20.5" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>play — main-DzoRmtga.js · 1.6 %</title><rect x="561.6" y="138" width="18.3" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>createBufferSource —  · 0.7 %</title><rect x="561.6" y="156" width="8.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>createGain —  · 0.2 %</title><rect x="570.3" y="156" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>connect —  · 0.2 %</title><rect x="573.2" y="156" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-DzoRmtga.js · 0.3 %</title><rect x="582.6" y="120" width="3.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>play — main-DzoRmtga.js · 0.3 %</title><rect x="582.6" y="138" width="3.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawScreen — main-DzoRmtga.js · 4.3 %</title><rect x="594.2" y="84" width="51.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-DzoRmtga.js · 3.7 %</title><rect x="594.2" y="102" width="43.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 2.1 %</title><rect x="594.2" y="120" width="24.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.6 %</title><rect x="618.8" y="120" width="6.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>sampleInto — main-DzoRmtga.js · 3.0 %</title><rect x="646.4" y="84" width="35.0" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>shortestDelta — game-CWo0Sj3D.js · 0.7 %</title><rect x="646.4" y="102" width="7.5" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>wrap — game-CWo0Sj3D.js · 0.2 %</title><rect x="646.4" y="120" width="1.7" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>wrap — game-CWo0Sj3D.js · 0.4 %</title><rect x="654.3" y="102" width="3.8" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>put — main-DzoRmtga.js · 0.2 %</title><rect x="658.7" y="102" width="2.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawWorld — main-DzoRmtga.js · 2.5 %</title><rect x="681.9" y="84" width="29.2" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.8 %</title><rect x="681.9" y="102" width="9.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 2.3 %</title><rect x="711.6" y="84" width="27.0" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>arc —  · 0.5 %</title><rect x="711.6" y="102" width="5.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>fill —  · 0.4 %</title><rect x="717.4" y="102" width="4.6" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawScore — main-DzoRmtga.js · 2.2 %</title><rect x="739.1" y="84" width="25.6" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.7 %</title><rect x="739.1" y="102" width="8.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 0.7 %</title><rect x="747.8" y="102" width="8.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>clearRect —  · 1.0 %</title><rect x="765.2" y="84" width="11.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawBullet — main-DzoRmtga.js · 0.8 %</title><rect x="776.8" y="84" width="9.6" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>draw — main-DzoRmtga.js · 0.4 %</title><rect x="776.8" y="102" width="3.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawImage —  · 0.3 %</title><rect x="776.8" y="120" width="3.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.3 %</title><rect x="781.2" y="102" width="3.1" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>drawShipCard — main-DzoRmtga.js · 0.8 %</title><rect x="787.0" y="84" width="9.6" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>drawShip — main-DzoRmtga.js · 0.8 %</title><rect x="787.0" y="102" width="9.6" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>fillText —  · 0.5 %</title><rect x="787.0" y="120" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>update — main-DzoRmtga.js · 0.8 %</title><rect x="797.1" y="84" width="8.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>measureText —  · 0.6 %</title><rect x="797.1" y="102" width="6.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>clip —  · 0.7 %</title><rect x="806.5" y="84" width="8.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>save —  · 0.5 %</title><rect x="815.2" y="84" width="6.0" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>pose — main-DzoRmtga.js · 0.3 %</title><rect x="821.7" y="84" width="3.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>scale —  · 0.2 %</title><rect x="825.4" y="84" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>translate —  · 0.2 %</title><rect x="828.3" y="84" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>rect —  · 0.2 %</title><rect x="831.2" y="84" width="2.4" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>begin — main-DzoRmtga.js · 0.8 %</title><rect x="866.7" y="66" width="8.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>end — main-DzoRmtga.js · 0.2 %</title><rect x="876.1" y="66" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>simulate — main-DzoRmtga.js · 8.5 %</title><rect x="884.1" y="48" width="101.7" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="887.1" y="61" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">simulate 9%</text></g>
+<g><title>simulate — main-DzoRmtga.js · 8.0 %</title><rect x="884.1" y="66" width="95.2" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="887.1" y="79" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">simulate 8%</text></g>
+<g><title>pass — main-DzoRmtga.js · 3.0 %</title><rect x="884.1" y="84" width="35.0" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-DzoRmtga.js · 2.9 %</title><rect x="884.1" y="102" width="34.3" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>sendRaw — main-DzoRmtga.js · 2.8 %</title><rect x="884.1" y="120" width="32.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>send —  · 2.5 %</title><rect x="884.1" y="138" width="29.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>applyInput — main-DzoRmtga.js · 1.4 %</title><rect x="919.6" y="84" width="16.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>step — main-DzoRmtga.js · 0.9 %</title><rect x="919.6" y="102" width="10.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>stepInput — game-CWo0Sj3D.js · 0.9 %</title><rect x="919.6" y="120" width="10.4" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>integrate — game-CWo0Sj3D.js · 0.7 %</title><rect x="919.6" y="138" width="8.2" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>encodeInput$1 — main-DzoRmtga.js · 1.0 %</title><rect x="937.0" y="84" width="11.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>emit — game-CWo0Sj3D.js · 0.6 %</title><rect x="949.3" y="84" width="6.7" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>events.on.signal.signal — main-DzoRmtga.js · 0.6 %</title><rect x="949.3" y="102" width="6.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>play — main-DzoRmtga.js · 0.6 %</title><rect x="949.3" y="120" width="6.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>createGain —  · 0.2 %</title><rect x="949.3" y="138" width="1.7" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>endStep — main-DzoRmtga.js · 0.2 %</title><rect x="956.5" y="84" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>begin — main-DzoRmtga.js · 0.3 %</title><rect x="979.7" y="66" width="3.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>requestAnimationFrame —  · 2.2 %</title><rect x="986.2" y="48" width="26.3" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-DzoRmtga.js · 13.5 %</title><rect x="1032.6" y="30" width="161.1" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="1035.6" y="43" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">(анонімна) 13%</text></g>
+<g><title>emit — game-CWo0Sj3D.js · 7.7 %</title><rect x="1032.6" y="48" width="91.5" height="17" fill="#2a78d6" fill-opacity="0.85"/><text x="1035.6" y="61" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">emit 8%</text></g>
+<g><title>connection.onBinary.signal.signal — main-DzoRmtga.js · 7.5 %</title><rect x="1032.6" y="66" width="89.4" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="1035.6" y="79" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">connection.on</text></g>
+<g><title>pass — main-DzoRmtga.js · 7.4 %</title><rect x="1032.6" y="84" width="88.6" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="1035.6" y="97" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">pass 7%</text></g>
+<g><title>(анонімна) — main-DzoRmtga.js · 7.4 %</title><rect x="1032.6" y="102" width="88.6" height="17" fill="#6250d6" fill-opacity="0.85"/><text x="1035.6" y="115" font-size="11" fill="#ffffff" font-family="ui-monospace, Menlo, monospace">(анонімна) 7%</text></g>
+<g><title>decodeSnapshot2 — main-DzoRmtga.js · 4.3 %</title><rect x="1032.6" y="120" width="51.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>decodeSnapshot$1 — main-DzoRmtga.js · 3.9 %</title><rect x="1032.6" y="138" width="46.6" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>decodeSelf — main-DzoRmtga.js · 1.0 %</title><rect x="1032.6" y="156" width="11.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>header — main-DzoRmtga.js · 0.2 %</title><rect x="1044.2" y="156" width="2.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>begin — main-DzoRmtga.js · 0.2 %</title><rect x="1079.7" y="138" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>onSnapshot — main-DzoRmtga.js · 2.6 %</title><rect x="1084.8" y="120" width="30.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>reconcile — main-DzoRmtga.js · 0.8 %</title><rect x="1084.8" y="138" width="8.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>push — main-DzoRmtga.js · 0.7 %</title><rect x="1094.2" y="138" width="7.5" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>snapshot — main-DzoRmtga.js · 0.2 %</title><rect x="1102.2" y="138" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>parseServerMessage — main-DzoRmtga.js · 3.5 %</title><rect x="1124.6" y="48" width="41.5" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>parseMessage — main-DzoRmtga.js · 3.4 %</title><rect x="1124.6" y="66" width="40.1" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>safeParse — main-DzoRmtga.js · 2.5 %</title><rect x="1124.6" y="84" width="29.2" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>(анонімна) — main-DzoRmtga.js · 2.4 %</title><rect x="1124.6" y="102" width="28.5" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 2.2 %</title><rect x="1124.6" y="120" width="25.6" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 2.1 %</title><rect x="1124.6" y="138" width="24.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>(анонімна) —  · 1.8 %</title><rect x="1124.6" y="156" width="21.2" height="17" fill="#eb6834" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 0.9 %</title><rect x="1124.6" y="174" width="10.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 0.8 %</title><rect x="1124.6" y="192" width="8.9" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 0.4 %</title><rect x="1124.6" y="210" width="3.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>wrapped — main-DzoRmtga.js · 0.2 %</title><rect x="1129.0" y="210" width="2.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 0.2 %</title><rect x="1129.0" y="228" width="2.4" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.parse — main-DzoRmtga.js · 0.7 %</title><rect x="1135.5" y="174" width="7.5" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>inst._zod.run — main-DzoRmtga.js · 0.5 %</title><rect x="1135.5" y="192" width="5.3" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>runChecks — main-DzoRmtga.js · 0.2 %</title><rect x="1135.5" y="210" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>dispatch — main-DzoRmtga.js · 0.4 %</title><rect x="1166.7" y="48" width="3.8" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>emit — game-CWo0Sj3D.js · 0.2 %</title><rect x="1166.7" y="66" width="2.4" height="17" fill="#2a78d6" fill-opacity="0.85"/></g>
+<g><title>connection.on.signal.signal — main-DzoRmtga.js · 0.2 %</title><rect x="1166.7" y="84" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>pass — main-DzoRmtga.js · 0.2 %</title><rect x="1166.7" y="102" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>injector.pass.droppable — main-DzoRmtga.js · 0.2 %</title><rect x="1166.7" y="120" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+<g><title>unlock — main-DzoRmtga.js · 0.2 %</title><rect x="1194.2" y="30" width="1.7" height="17" fill="#6250d6" fill-opacity="0.85"/></g>
+</svg>

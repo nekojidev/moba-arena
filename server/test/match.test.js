@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { CODECS } from '@moba-arena/shared/codec/index.ts';
 import { DT, TICK_MS } from '@moba-arena/shared/protocol.ts';

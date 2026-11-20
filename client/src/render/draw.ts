@@ -33,6 +33,19 @@ const EFFECT_LABELS: Record<EffectType, string> = {
 // зібраний із запису знімка (мережева гра) — без жодних приведень типів.
 type Ctx = CanvasRenderingContext2D;
 
+// Імена кадрів спрайтів — готовими рядками. Шаблон `hero-${team}…` у функції малювання
+// складав би новий рядок на кожну сутність у кожному кадрі.
+const HERO_FRAMES: Record<Team, readonly [string, string]> = {
+  green: ['hero-green', 'hero-green-thrust'],
+  red: ['hero-red', 'hero-red-thrust'],
+};
+const BOLT_FRAMES: Record<Team, string> = { green: 'bolt-green', red: 'bolt-red' };
+const RUNE_FRAMES: Record<EffectType, string> = {
+  shield: 'rune-shield',
+  rapid: 'rune-rapid',
+  homing: 'rune-homing',
+};
+
 // Позначки поведінок: за ними isHoming упізнає самонаведення.
 type BehaviorTags = readonly { readonly tag?: string }[];
 
@@ -188,7 +201,7 @@ export function drawShip(
 
   ctx.rotate(pose.angle);
 
-  const frame = `hero-${ship.team}${ship.thrust > 0 ? '-thrust' : ''}`;
+  const frame = HERO_FRAMES[ship.team][ship.thrust > 0 ? 1 : 0];
   if (sprites.draw(ctx, frame, ship.radius)) {
     ctx.restore();
     return;
@@ -254,11 +267,12 @@ export function drawBullet(
   timeMs: number,
   sprites: Sprites = NO_SPRITES,
 ): void {
-  const color = isHoming(bullet) ? EFFECT_COLORS.homing : TEAMS[bullet.team].bolt;
+  const seeking = isHoming(bullet);
+  const color = seeking ? EFFECT_COLORS.homing : TEAMS[bullet.team].bolt;
   ctx.save();
   ctx.translate(pose.x, pose.y);
   ctx.rotate(pose.angle);
-  const frame = isHoming(bullet) ? 'bolt-homing' : `bolt-${bullet.team}`;
+  const frame = seeking ? 'bolt-homing' : BOLT_FRAMES[bullet.team];
   if (sprites.draw(ctx, frame, bullet.radius)) {
     ctx.restore();
     return;
@@ -338,7 +352,7 @@ export function drawPickup(
   ctx.translate(pose.x, pose.y);
   ctx.globalAlpha = pickup.ttl < 3 ? 0.4 + 0.4 * Math.abs(Math.sin(timeMs * 0.01)) : 1;
   ctx.scale(pulse, pulse);
-  if (sprites.draw(ctx, `rune-${pickup.effect.type}`, pickup.radius)) {
+  if (sprites.draw(ctx, RUNE_FRAMES[pickup.effect.type], pickup.radius)) {
     ctx.restore();
     return;
   }
@@ -423,4 +437,72 @@ export function drawScore(
   ctx.fillStyle = TEAMS.red.body;
   ctx.fillText(String(botScore), viewWidth / 2 + 16, 50);
   ctx.restore();
+}
+
+// Текстова панель із кешем. Форматувати числа й міряти ширину рядків на кожному кадрі —
+// це десятки нових рядків і викликів measureText 60 разів на секунду; очі ж не встигають
+// прочитати число, яке змінюється частіше ніж кілька разів на секунду. Тому текст
+// оновлюється через update() (рідко), а draw() лише малює вже готові рядки.
+export interface TextPanel {
+  update(ctx: Ctx, lines: readonly string[]): void;
+  draw(ctx: Ctx, left: number, top: number): void;
+  readonly width: number;
+  readonly height: number;
+}
+
+export function createTextPanel({
+  font,
+  lineHeight,
+  minWidth = 0,
+  extraHeight = 0,
+  background = 'rgba(8, 14, 10, 0.78)',
+}: {
+  readonly font: string;
+  readonly lineHeight: number;
+  readonly minWidth?: number;
+  readonly extraHeight?: number;
+  readonly background?: string;
+}): TextPanel {
+  const padding = 10;
+  let lines: readonly string[] = [];
+  let width = minWidth;
+
+  return {
+    get width() {
+      return width;
+    },
+    get height() {
+      return lines.length * lineHeight + padding * 2 + extraHeight;
+    },
+
+    update(ctx, next) {
+      lines = next;
+      ctx.save();
+      ctx.font = font;
+      width = minWidth;
+      for (const line of lines) width = Math.max(width, ctx.measureText(line).width + padding * 2);
+      ctx.restore();
+    },
+
+    draw(ctx, left, top) {
+      ctx.save();
+      ctx.font = font;
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = background;
+      ctx.fillRect(left, top, width, this.height);
+      ctx.fillStyle = '#d7f5df';
+      for (let i = 0; i < lines.length; i += 1) {
+        ctx.fillText(lines[i] ?? '', left + padding, top + padding + i * lineHeight);
+      }
+      ctx.restore();
+    },
+  };
+}
+
+export function hudStatLines(stats: HudStats): string[] {
+  return [
+    `steps/s   ${stats.stepsPerSecond.toFixed(1)}`,
+    `frames/s  ${stats.framesPerSecond.toFixed(1)}`,
+    `frame     ${stats.frameTime.toFixed(2)} ms  (max/s ${stats.frameTimeMax.toFixed(1)})`,
+  ];
 }

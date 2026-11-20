@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MOBA Arena — дослід із Web Worker</title>
+    <style>
+      body {
+        font:
+          15px/1.6 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+        background: #0b100d;
+        color: #d7f5df;
+        max-width: 720px;
+        margin: 48px auto;
+        padding: 0 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Частинки: основний потік проти Web Worker</h1>
+    <p>
+      2048 частинок, 600 кадрів. Міряємо, скільки часу на кадр витрачає саме ОСНОВНИЙ потік: у
+      першому варіанті — на оновлення частинок, у другому — на postMessage туди й обробку відповіді.
+    </p>
+    <pre id="result">Міряю…</pre>
+    <script type="module">
+      const COUNT = 2048;
+      const FRAMES = 600;
+      const DT = 1 / 60;
+      const frame = () => new Promise((done) => requestAnimationFrame(done));
+
+      // --- 1. усе в основному потоці ---------------------------------------------------
+      async function onMainThread() {
+        const x = new Float32Array(COUNT);
+        const y = new Float32Array(COUNT);
+        const vx = new Float32Array(COUNT);
+        const vy = new Float32Array(COUNT);
+        for (let i = 0; i < COUNT; i += 1) {
+          vx[i] = Math.cos(i) * 120;
+          vy[i] = Math.sin(i) * 120;
+        }
+        let total = 0;
+        for (let n = 0; n < FRAMES; n += 1) {
+          await frame();
+          const started = performance.now();
+          for (let i = 0; i < COUNT; i += 1) {
+            x[i] += vx[i] * DT;
+            y[i] += vy[i] * DT;
+          }
+          total += performance.now() - started;
+        }
+        return (total / FRAMES) * 1000; // мкс на кадр
+      }
+
+      // --- 2. оновлення у воркері, буфери їздять туди-сюди без копіювання ----------------
+      async function inWorker() {
+        const worker = new Worker(new URL('./src/effects.worker.ts', import.meta.url), {
+          type: 'module',
+        });
+        let x = new Float32Array(COUNT);
+        let y = new Float32Array(COUNT);
+        let total = 0;
+        let latency = 0;
+        for (let n = 0; n < FRAMES; n += 1) {
+          await frame();
+          const sent = performance.now();
+          const reply = new Promise((done) => {
+            worker.onmessage = (event) => {
+              const received = performance.now();
+              x = event.data.x;
+              y = event.data.y;
+              total += performance.now() - received; // час обробника на основному потоці
+              latency += received - sent;
+              done();
+            };
+          });
+          worker.postMessage({ dt: DT, x, y }, [x.buffer, y.buffer]);
+          total += performance.now() - sent; // час самого postMessage
+          await reply;
+        }
+        worker.terminate();
+        return { main: (total / FRAMES) * 1000, latencyMs: latency / FRAMES };
+      }
+
+      const main = await onMainThread();
+      const worker = await inWorker();
+      const result = {
+        mainThreadMicros: Number(main.toFixed(1)),
+        workerMainThreadMicros: Number(worker.main.toFixed(1)),
+        workerRoundTripMs: Number(worker.latencyMs.toFixed(2)),
+      };
+      document.querySelector('#result').textContent =
+        `основний потік, оновлення самому:      ${result.mainThreadMicros} мкс/кадр\n` +
+        `основний потік, робота з воркером:     ${result.workerMainThreadMicros} мкс/кадр\n` +
+        `відповідь воркера приходить через:     ${result.workerRoundTripMs} мс`;
+      window.__workerBench = result;
+    </script>
+  </body>
+</html>

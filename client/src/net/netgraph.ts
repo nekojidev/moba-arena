@@ -1,8 +1,12 @@
 // Netgraph: що відбувається з мережею просто зараз. Без нього мережевий код
 // налагоджують навпомацки.
 
+import { createTextPanel } from '../render/draw.ts';
+
 const WINDOW_MS = 1000;
 const HISTORY = 150; // останні поправки для графіка (5 с знімків)
+const REFRESH_MS = 250; // як часто оновлюється текст панелі
+const GRAPH_HEIGHT = 36;
 
 interface Traffic {
   readonly at: number;
@@ -39,7 +43,7 @@ export interface Netgraph {
     ctx: CanvasRenderingContext2D,
     view: { readonly height: number },
     now: number,
-    extra: readonly string[],
+    extra: () => readonly string[],
   ): void;
 }
 
@@ -77,6 +81,15 @@ export function createNetgraph(): Netgraph {
     };
   }
 
+  const panel = createTextPanel({
+    font: '12px ui-monospace, Menlo, Consolas, monospace',
+    lineHeight: 16,
+    minWidth: 300,
+    extraHeight: GRAPH_HEIGHT + 10,
+    background: 'rgba(8, 14, 10, 0.82)',
+  });
+  let refreshedAt = -Infinity;
+
   return {
     metrics,
     corrections,
@@ -96,56 +109,55 @@ export function createNetgraph(): Netgraph {
 
     summary,
 
+    // Текст оновлюється раз на REFRESH_MS, а не щокадру (див. createTextPanel);
+    // extra — функція, щоб і додаткові рядки будувались лише під час оновлення.
     draw(ctx, view, now, extra) {
-      const s = summary(now);
-      const ms = (value: number | null): string =>
-        value === null ? '—' : `${value.toFixed(0)} мс`;
-      const lines = [
-        `RTT          ${ms(s.rtt)}`,
-        `вік знімка   ${ms(s.snapshotAge)}   (${s.snapshotsPerSecond}/с)`,
-        `вниз         ${(s.downBytes / 1024).toFixed(2)} КБ/с`,
-        `вгору        ${(s.upBytes / 1024).toFixed(2)} КБ/с`,
-        `черга input  ${s.pending}`,
-        `поправка     ${s.correctionLast.toFixed(2)}  сер ${s.correctionAvg.toFixed(2)}  макс ${s.correctionMax.toFixed(1)}`,
-        ...extra,
-      ];
+      if (now - refreshedAt >= REFRESH_MS) {
+        refreshedAt = now;
+        const s = summary(now);
+        const ms = (value: number | null): string =>
+          value === null ? '—' : `${value.toFixed(0)} мс`;
+        panel.update(ctx, [
+          `RTT          ${ms(s.rtt)}`,
+          `вік знімка   ${ms(s.snapshotAge)}   (${s.snapshotsPerSecond}/с)`,
+          `вниз         ${(s.downBytes / 1024).toFixed(2)} КБ/с`,
+          `вгору        ${(s.upBytes / 1024).toFixed(2)} КБ/с`,
+          `черга input  ${s.pending}`,
+          `поправка     ${s.correctionLast.toFixed(2)}  сер ${s.correctionAvg.toFixed(2)}  макс ${s.correctionMax.toFixed(1)}`,
+          ...extra(),
+        ]);
+      }
 
-      const lineHeight = 16;
       const padding = 10;
-      const graphHeight = 36;
-      ctx.save();
-      ctx.font = '12px ui-monospace, Menlo, Consolas, monospace';
-      ctx.textBaseline = 'top';
-      const width = Math.max(
-        300,
-        ...lines.map((line) => ctx.measureText(line).width + padding * 2),
-      );
-      const height = lines.length * lineHeight + graphHeight + padding * 3;
       const left = 12;
-      const top = view.height - height - 12;
-      ctx.fillStyle = 'rgba(8, 14, 10, 0.82)';
-      ctx.fillRect(left, top, width, height);
-      ctx.fillStyle = '#d7f5df';
-      lines.forEach((line, index) =>
-        ctx.fillText(line, left + padding, top + padding + index * lineHeight),
-      );
+      const top = view.height - panel.height - 12;
+      panel.draw(ctx, left, top);
 
       // Графік поправок: стовпчик на знімок, шкала — 0…8 одиниць (вище — обрізається).
-      const graphTop = top + padding * 2 + lines.length * lineHeight;
-      const graphWidth = width - padding * 2;
+      const graphTop = top + panel.height - GRAPH_HEIGHT - padding;
+      const graphWidth = panel.width - padding * 2;
+      ctx.save();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
-      ctx.fillRect(left + padding, graphTop, graphWidth, graphHeight);
+      ctx.fillRect(left + padding, graphTop, graphWidth, GRAPH_HEIGHT);
       const barWidth = graphWidth / HISTORY;
-      corrections.forEach((value, index) => {
-        const h = Math.min(1, value / 8) * graphHeight;
-        ctx.fillStyle = value > 8 ? '#e2574c' : value > 1 ? '#f2c14e' : '#3fd6a3';
+      let barColor = '';
+      for (let index = 0; index < corrections.length; index += 1) {
+        const value = corrections[index] ?? 0;
+        const h = Math.min(1, value / 8) * GRAPH_HEIGHT;
+        // Присвоєння fillStyle — це розбір рядка кольору; 150 стовпчиків × 60 кадрів/с.
+        // Сусідні стовпчики майже завжди одного кольору, тож міняємо лише за потреби.
+        const color = value > 8 ? '#e2574c' : value > 1 ? '#f2c14e' : '#3fd6a3';
+        if (color !== barColor) {
+          barColor = color;
+          ctx.fillStyle = color;
+        }
         ctx.fillRect(
           left + padding + (HISTORY - corrections.length + index) * barWidth,
-          graphTop + graphHeight - Math.max(1, h),
+          graphTop + GRAPH_HEIGHT - Math.max(1, h),
           Math.max(1, barWidth - 0.5),
           Math.max(1, h),
         );
-      });
+      }
       ctx.restore();
     },
   };

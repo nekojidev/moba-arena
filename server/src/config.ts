@@ -18,6 +18,7 @@ export class ConfigError extends Error {
 }
 
 const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'silent'] as const;
+const COLLISION_SYSTEMS = ['naive', 'hash'] as const;
 
 // Змінної немає або вона порожня (PORT=) — однаково «не задано»: спрацює типове значення.
 const blankAsMissing = (raw: unknown): unknown => (raw === '' ? undefined : raw);
@@ -58,9 +59,20 @@ const envSchema = z.object({
     z.enum(LOG_LEVELS, { error: `дозволено ${LOG_LEVELS.join(', ')}` }).default('info'),
   ),
   DEBUG_ROUTES: flag(false),
+  // Система зіткнень у матчі: hash — просторовий хеш, naive — перебір усіх пар.
+  // Результат однаковий (доведено тестом у shared), різниця лише у швидкості: хеш швидший
+  // за будь-якої кількості сутностей (npm run bench:collision), тому він типовий.
+  // naive лишено, щоб порівнювати «до» і «після» (npm run load -- --collision=naive,hash).
+  COLLISION: z.preprocess(
+    blankAsMissing,
+    z
+      .enum(COLLISION_SYSTEMS, { error: `дозволено ${COLLISION_SYSTEMS.join(', ')}` })
+      .default('hash'),
+  ),
 
   MAX_ROOMS: integer(20, { min: 1, max: 1000 }),
-  MAX_PLAYERS_PER_ROOM: integer(8, { min: 1, max: 64 }),
+  // Верхня межа 256 — для навантажувального тесту (npm run load); типово кімната на 8.
+  MAX_PLAYERS_PER_ROOM: integer(8, { min: 1, max: 256 }),
   MAX_PAYLOAD_BYTES: integer(4096, { min: 64, max: 1_048_576 }),
   MAX_BODY_BYTES: integer(4096, { min: 64, max: 1_048_576 }),
   JOIN_TIMEOUT_MS: integer(5000, { min: 10, max: 60_000 }),
@@ -80,6 +92,7 @@ const configSchema = envSchema
     clientDist: resolve(env.CLIENT_DIST),
     logLevel: env.LOG_LEVEL,
     debugRoutes: env.DEBUG_ROUTES,
+    collision: env.COLLISION,
 
     maxRooms: env.MAX_ROOMS,
     maxPlayersPerRoom: env.MAX_PLAYERS_PER_ROOM,

@@ -15,11 +15,36 @@ interface Frame {
   readonly tick: Tick;
   readonly time: number;
   readonly entities: ReadonlyMap<EntityId, SnapshotEntity>;
+  // Ті самі записи масивом (це масив зі знімка): обхід за індексом не створює ітератор.
+  readonly list: readonly SnapshotEntity[];
 }
 
 export interface Sample {
   readonly entities: SnapshotEntity[];
   readonly starved: boolean;
+}
+
+// Результат для рендера без створення об'єктів: записи — це посилання на записи знімка,
+// а інтерпольовані x, y, angle лежать у трьох масивах за тим самим індексом.
+// Буфер створюється один раз і заповнюється заново щокадру.
+export interface SampleBuffer {
+  readonly records: SnapshotEntity[];
+  x: Float64Array;
+  y: Float64Array;
+  angle: Float64Array;
+  count: number;
+  starved: boolean;
+}
+
+export function createSampleBuffer(capacity = 256): SampleBuffer {
+  return {
+    records: [],
+    x: new Float64Array(capacity),
+    y: new Float64Array(capacity),
+    angle: new Float64Array(capacity),
+    count: 0,
+    starved: true,
+  };
 }
 
 export interface Interpolator {
@@ -28,28 +53,106 @@ export interface Interpolator {
   readonly latest: Frame | null;
   push(snapshot: Pick<Snapshot, 'tick' | 'entities'>): boolean;
   sample(renderTime: number): Sample;
+  sampleInto(renderTime: number, out: SampleBuffer): void;
 }
 
 export function createInterpolator({
   arena,
-  capacity = 40,
+  // 12 знімків = 0,4 с — із запасом для затримки інтерполяції до 300 мс. Довший буфер
+  // тримав би записи понад секунду: вони встигали б «постаріти» й перейти в стару
+  // купу, а її прибирає вже дороге велике збирання сміття.
+  capacity = 12,
 }: {
   readonly arena: Arena;
   readonly capacity?: number;
 }): Interpolator {
   const buffer: Frame[] = []; // за зростанням tick
 
-  function blend(a: SnapshotEntity, b: SnapshotEntity, t: number): SnapshotEntity {
-    const dx = shortestDelta(a.x, b.x, arena.width);
-    const dy = shortestDelta(a.y, b.y, arena.height);
-    if (Math.hypot(dx, dy) > TELEPORT) return t < 0.5 ? a : b;
-    return {
-      ...a,
-      x: wrap(a.x + dx * t, arena.width),
-      y: wrap(a.y + dy * t, arena.height),
-      angle: a.angle + shortestDelta(a.angle, b.angle, TAU) * t,
-    };
+  // Запис «як є» у комірку буфера.
+  function put(
+    out: SampleBuffer,
+    record: SnapshotEntity,
+    x: number,
+    y: number,
+    angle: number,
+  ): void {
+    const i = out.count;
+    if (i >= out.x.length) {
+      // Сутностей більше, ніж місця: подвоюємо масиви (трапляється рідко, не щокадру).
+      const grow = (old: Float64Array): Float64Array => {
+        const bigger = new Float64Array(old.length * 2);
+        bigger.set(old);
+        return bigger;
+      };
+      out.x = grow(out.x);
+      out.y = grow(out.y);
+      out.angle = grow(out.angle);
+    }
+    out.records[i] = record;
+    out.x[i] = x;
+    out.y[i] = y;
+    out.angle[i] = angle;
+    out.count = i + 1;
   }
+
+  function putFrame(out: SampleBuffer, frame: Frame, starved: boolean): void {
+    for (let i = 0; i < frame.list.length; i += 1) {
+      const record = frame.list[i];
+      if (record) put(out, record, record.x, record.y, record.angle);
+    }
+    out.starved = starved;
+  }
+
+  // Та сама логіка, що й у sample(), але результат пишеться в готовий буфер:
+  // жодного нового масиву чи об'єкта на кадр.
+  function sampleInto(renderTime: number, out: SampleBuffer): void {
+    out.count = 0;
+    out.starved = true;
+    const first = buffer[0];
+    const last = buffer.at(-1);
+    if (!first || !last) return;
+    if (renderTime >= last.time) return putFrame(out, last, true);
+    if (renderTime <= first.time) return putFrame(out, first, false);
+
+    // Останній знімок, що не пізніший за renderTime, — це «до»; наступний за ним — «після».
+    let index = buffer.length - 2;
+    for (let frame = buffer[index]; frame && frame.time > renderTime; frame = buffer[index])
+      index -= 1;
+    const from = buffer[index];
+    const to = buffer[index + 1];
+    if (!from || !to) return putFrame(out, last, true);
+    const t = (renderTime - from.time) / (to.time - from.time);
+
+    for (let i = 0; i < from.list.length; i += 1) {
+      const a = from.list[i];
+      if (!a) continue;
+      const b = to.entities.get(a.id);
+      // Сутність зникла в наступному знімку — домальовуємо її до цього моменту як є.
+      // Сутність, що з'явилась лише в наступному, почне малюватися, коли він стане «до».
+      if (!b) {
+        put(out, a, a.x, a.y, a.angle);
+        continue;
+      }
+      const dx = shortestDelta(a.x, b.x, arena.width);
+      const dy = shortestDelta(a.y, b.y, arena.height);
+      if (dx * dx + dy * dy > TELEPORT * TELEPORT) {
+        const near = t < 0.5 ? a : b; // стрибок (респаун) не «розмазуємо» по арені
+        put(out, a, near.x, near.y, near.angle);
+      } else {
+        put(
+          out,
+          a,
+          wrap(a.x + dx * t, arena.width),
+          wrap(a.y + dy * t, arena.height),
+          a.angle + shortestDelta(a.angle, b.angle, TAU) * t,
+        );
+      }
+    }
+    out.starved = false;
+  }
+
+  // Буфер для sample(): зручний варіант, що повертає нові об'єкти (для тестів і налагодження).
+  const scratch = createSampleBuffer();
 
   return {
     get size() {
@@ -66,10 +169,13 @@ export function createInterpolator({
     push(snapshot) {
       const newest = buffer.at(-1);
       if (newest && snapshot.tick <= newest.tick) return false;
+      const entities = new Map<EntityId, SnapshotEntity>();
+      for (const entity of snapshot.entities) entities.set(entity.id, entity);
       buffer.push({
         tick: snapshot.tick,
         time: snapshot.tick * TICK_MS,
-        entities: new Map(snapshot.entities.map((entity) => [entity.id, entity])),
+        entities,
+        list: snapshot.entities,
       });
       if (buffer.length > capacity) buffer.shift();
       return true;
@@ -79,30 +185,25 @@ export function createInterpolator({
     //   starved: true — потрібного «після» ще немає (буфер спорожнів): тримаємо останній
     //   знімок і не екстраполюємо — краще на мить завмерти, ніж показати те, чого не було.
     sample(renderTime) {
-      const first = buffer[0];
-      const last = buffer.at(-1);
-      if (!first || !last) return { entities: [], starved: true };
-      if (renderTime >= last.time) return { entities: [...last.entities.values()], starved: true };
-      if (renderTime <= first.time)
-        return { entities: [...first.entities.values()], starved: false };
-
-      // Останній знімок, що не пізніший за renderTime, — це «до»; наступний за ним — «після».
-      const index = buffer.findLastIndex((frame) => frame.time <= renderTime);
-      const from = buffer[index];
-      const to = buffer[index + 1];
-      // Перевірки вище гарантують, що обидва є; для tsc елемент масиву — «значення або undefined».
-      if (!from || !to) return { entities: [...last.entities.values()], starved: true };
-      const t = (renderTime - from.time) / (to.time - from.time);
-
+      sampleInto(renderTime, scratch);
       const entities: SnapshotEntity[] = [];
-      for (const [id, a] of from.entities) {
-        const b = to.entities.get(id);
-        // Сутність зникла в наступному знімку — домальовуємо її до цього моменту як є.
-        // Сутність, що з'явилась лише в наступному, почне малюватися, коли він стане «до».
-        entities.push(b ? blend(a, b, t) : a);
+      for (let i = 0; i < scratch.count; i += 1) {
+        const record = scratch.records[i];
+        if (!record) continue;
+        const x = scratch.x[i] ?? record.x;
+        const y = scratch.y[i] ?? record.y;
+        const angle = scratch.angle[i] ?? record.angle;
+        // Нічого не змінилось — віддаємо сам запис; інакше — копію з новою позою.
+        entities.push(
+          x === record.x && y === record.y && angle === record.angle
+            ? record
+            : { ...record, x, y, angle },
+        );
       }
-      return { entities, starved: false };
+      return { entities, starved: scratch.starved };
     },
+
+    sampleInto,
   };
 }
 

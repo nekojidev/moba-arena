@@ -1,0 +1,125 @@
+{
+  "label": "before",
+  "seconds": 15,
+  "bots": 8,
+  "entities": 23,
+  "browser": "159.0.8154.6",
+  "frameMs": {
+    "samples": 1831,
+    "p50": 16.7,
+    "p95": 16.7,
+    "p99": 16.8,
+    "max": 16.8
+  },
+  "sectionsMs": {
+    "simulate": {
+      "samples": 916,
+      "p50": 0.1,
+      "p95": 0.2,
+      "p99": 0.3,
+      "max": 0.3
+    },
+    "render": {
+      "samples": 1831,
+      "p50": 0.4,
+      "p95": 0.8,
+      "p99": 1,
+      "max": 1.5
+    },
+    "decode": {
+      "samples": 915,
+      "p50": 0,
+      "p95": 0.1,
+      "p99": 0.1,
+      "max": 0.2
+    },
+    "reconcile": {
+      "samples": 915,
+      "p50": 0,
+      "p95": 0.1,
+      "p99": 0.1,
+      "max": 0.1
+    }
+  },
+  "gc": {
+    "minor": {
+      "count": 13,
+      "totalMs": 10.17,
+      "maxMs": 1.7
+    },
+    "major": {
+      "count": 5,
+      "totalMs": 12.32,
+      "maxMs": 6.62
+    }
+  },
+  "allocatedKBPerSecond": 1896.3,
+  "topAllocators": [
+    {
+      "name": "sample — main-C4sCVuUt.js:7953",
+      "value": "11.8 %"
+    },
+    {
+      "name": "render — main-C4sCVuUt.js:8573",
+      "value": "10.8 %"
+    },
+    {
+      "name": "blend — main-C4sCVuUt.js:7917",
+      "value": "9.9 %"
+    },
+    {
+      "name": "draw — main-C4sCVuUt.js:8089",
+      "value": "7.4 %"
+    },
+    {
+      "name": "draw — main-C4sCVuUt.js:7377",
+      "value": "7.3 %"
+    },
+    {
+      "name": "decodeSnapshot$1 — main-C4sCVuUt.js:7229",
+      "value": "5.1 %"
+    }
+  ],
+  "topSelfTime": [
+    {
+      "name": "(idle) — (рушій)",
+      "value": "87.2 %"
+    },
+    {
+      "name": "(program) — (рушій)",
+      "value": "10.2 %"
+    },
+    {
+      "name": "measureText — (рушій)",
+      "value": "0.3 %"
+    },
+    {
+      "name": "fillText — (рушій)",
+      "value": "0.2 %"
+    },
+    {
+      "name": "drawImage — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "(garbage collector) — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "save — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "render — main-C4sCVuUt.js:8573",
+      "value": "0.1 %"
+    },
+    {
+      "name": "fillRect — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "drawShip — main-C4sCVuUt.js:7460",
+      "value": "0.1 %"
+    }
+  ]
+}

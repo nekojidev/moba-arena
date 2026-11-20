@@ -1,5 +1,5 @@
 // Димовий тест рендера без браузера: підставний ctx приймає будь-які виклики.
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { createGame } from '@moba-arena/shared/sim/game.ts';

@@ -7,6 +7,7 @@ import type { Codec } from '@moba-arena/shared/codec/index.ts';
 import { isHoming } from '@moba-arena/shared/sim/behaviors.ts';
 import { createDirector, type Director } from '@moba-arena/shared/sim/game.ts';
 import { Ship, type Command } from '@moba-arena/shared/sim/ship.ts';
+import type { CollisionSystem } from '@moba-arena/shared/sim/collision.ts';
 import { World, type AnyEntity } from '@moba-arena/shared/sim/world.ts';
 import {
   DT,
@@ -24,7 +25,8 @@ import type { PlayerRef, Room, RoomManager } from './rooms.ts';
 const MAX_QUEUE = 30; // input у черзі одного гравця (1 с); понад це — найстаріші викидаємо
 const MAX_BURST = 6; // скільки input гравця можна обробити за один крок сервера
 const MAX_CATCH_UP = 5; // скільки пропущених кроків наздоганяємо за раз
-const STATS_WINDOW = 300; // кроків (10 с)
+const STATS_WINDOW = 300; // кроків (10 с) — типове вікно звіту
+export const STATS_CAPACITY = 1800; // стільки кроків пам'ятаємо (60 с): /api/stats?window=N
 export const MAX_BOTS = 16;
 const AUTO_BOT_ID = 'bot-auto';
 
@@ -66,8 +68,10 @@ export interface MatchStats {
   bytesOut: number;
 }
 
-interface Summary {
+export interface Summary {
   readonly avg: number;
+  readonly p50: number;
+  readonly p99: number;
   readonly max: number;
 }
 
@@ -77,6 +81,8 @@ export interface MatchReport extends MatchStats {
   readonly players: number;
   readonly bots: number;
   readonly entities: number;
+  // Скільки останніх кроків увійшло в tickDurationMs / tickLatenessMs.
+  readonly window: number;
   readonly tickDurationMs: Summary;
   readonly tickLatenessMs: Summary;
 }
@@ -87,10 +93,23 @@ function placed<K extends SnapshotEntity['kind']>(kind: K, entity: AnyEntity) {
   return { id: entity.id, kind, x: entity.pos.x, y: entity.pos.y, angle: entity.angle };
 }
 
-function summarize(list: readonly number[]): Summary {
+const round = (value: number): number => Number(value.toFixed(3));
+
+// Перцентиль методом найближчого рангу: p99 зі 600 значень — 594-те за зростанням.
+// Жодної інтерполяції: результат — завжди одне зі справді виміряних значень.
+export function percentile(sorted: readonly number[], q: number): number {
+  const rank = Math.max(1, Math.ceil(q * sorted.length));
+  return sorted[Math.min(sorted.length, rank) - 1] ?? 0;
+}
+
+export function summarize(list: readonly number[]): Summary {
+  if (list.length === 0) return { avg: 0, p50: 0, p99: 0, max: 0 };
+  const sorted = list.toSorted((a, b) => a - b);
   return {
-    avg: list.length ? Number((list.reduce((a, b) => a + b, 0) / list.length).toFixed(3)) : 0,
-    max: list.length ? Number(Math.max(...list).toFixed(3)) : 0,
+    avg: round(sorted.reduce((a, b) => a + b, 0) / sorted.length),
+    p50: round(percentile(sorted, 0.5)),
+    p99: round(percentile(sorted, 0.99)),
+    max: round(sorted.at(-1) ?? 0),
   };
 }
 
@@ -111,12 +130,26 @@ export class Match {
   #botCounter = 0;
   readonly stats: MatchStats = { overruns: 0, droppedInputs: 0, snapshots: 0, bytesOut: 0 };
 
-  constructor({ room, logger }: { room: Room; logger: Logger }) {
+  // collide — система зіткнень (типово наївна зі shared); сервер може передати просторовий хеш.
+  constructor({
+    room,
+    logger,
+    collide,
+  }: {
+    room: Room;
+    logger: Logger;
+    collide?: CollisionSystem;
+  }) {
     this.room = room;
     this.logger = logger;
     const { width, height, asteroids, pickups, seed } = room.arena;
     // Випадковість — лише з генератора світу, а його seed задає сервер.
-    this.world = new World({ arena: { width, height }, seed, cosmetics: false });
+    this.world = new World({
+      arena: { width, height },
+      seed,
+      cosmetics: false,
+      ...(collide ? { collide } : {}),
+    });
     this.director = createDirector(this.world, { asteroids, pickups });
 
     // Події світу, які їдуть клієнтам. Слухач отримує дані події напряму; до них додаємо
@@ -376,7 +409,7 @@ export class Match {
 
   #record(list: number[], value: number): void {
     list.push(value);
-    if (list.length > STATS_WINDOW) list.shift();
+    if (list.length > STATS_CAPACITY) list.shift();
   }
 
   stop(): void {
@@ -384,15 +417,19 @@ export class Match {
     this.#timer = null;
   }
 
-  report(): MatchReport {
+  // window — скільки останніх кроків узяти у звіт (не більше, ніж пам'ятаємо).
+  report(window = STATS_WINDOW): MatchReport {
+    const size = Math.max(1, Math.min(STATS_CAPACITY, Math.floor(window)));
+    const durations = this.#durations.slice(-size);
     return {
       room: this.room.id,
       tick: this.world.tick,
       players: this.humans,
       bots: this.#bots.size,
       entities: this.world.size,
-      tickDurationMs: summarize(this.#durations),
-      tickLatenessMs: summarize(this.#lateness),
+      window: durations.length,
+      tickDurationMs: summarize(durations),
+      tickLatenessMs: summarize(this.#lateness.slice(-size)),
       ...this.stats,
     };
   }
@@ -403,16 +440,30 @@ export class MatchManager {
   #matches = new Map<string, Match>();
 
   readonly logger: Logger;
+  readonly #collide: CollisionSystem | undefined;
 
-  constructor({ rooms, logger }: { rooms: RoomManager; logger: Logger }) {
+  constructor({
+    rooms,
+    logger,
+    collide,
+  }: {
+    rooms: RoomManager;
+    logger: Logger;
+    collide?: CollisionSystem;
+  }) {
     this.logger = logger;
+    this.#collide = collide;
     rooms.list().forEach((room) => this.#wire(room));
     rooms.on('created', (room) => this.#wire(room));
   }
 
   #wire(room: Room): void {
     room.on('start', () => {
-      const match = new Match({ room, logger: this.logger });
+      const match = new Match({
+        room,
+        logger: this.logger,
+        ...(this.#collide ? { collide: this.#collide } : {}),
+      });
       this.#matches.set(room.id, match);
       match.start();
       this.logger.info('match started', { room: room.id, seed: room.arena.seed });
@@ -438,8 +489,8 @@ export class MatchManager {
     return this.#matches.get(roomId);
   }
 
-  report(): MatchReport[] {
-    return [...this.#matches.values()].map((match) => match.report());
+  report(window?: number): MatchReport[] {
+    return [...this.#matches.values()].map((match) => match.report(window));
   }
 
   closeAll(): void {

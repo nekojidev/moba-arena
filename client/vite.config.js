@@ -57,11 +57,14 @@ export default defineConfig({
   appType: 'mpa',
   plugins: [chaosNetwork()],
   build: {
+    // PROFILE=1 — збірка без мініфікації, щоб у профайлері були справжні імена функцій.
+    minify: process.env.PROFILE ? false : 'esbuild',
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         puzzles: resolve(import.meta.dirname, 'puzzles.html'),
         selftest: resolve(import.meta.dirname, 'selftest.html'),
+        workerBench: resolve(import.meta.dirname, 'worker-bench.html'),
       },
     },
   },

@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist', '**/logs'] },
+  { ignores: ['**/dist', '**/dist-profile', '**/logs', 'playwright-report', 'test-results'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -21,6 +21,25 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    // Правила, яким потрібні типи (а не лише синтаксис), — для всього коду в src/ та e2e/.
+    // Головне з них — no-floating-promises: проміс, який ніхто не чекає і не ловить,
+    // у Node при відхиленні завершує процес.
+    files: ['shared/src/**/*.ts', 'client/src/**/*.ts', 'server/src/**/*.ts', 'e2e/**/*.ts'],
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      // default, який передає значення в never, уже гарантує вичерпність — його досить.
+      '@typescript-eslint/switch-exhaustiveness-check': [
+        'error',
+        { considerDefaultExhaustiveForUnions: true },
       ],
     },
   },

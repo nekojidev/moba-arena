@@ -1,0 +1,148 @@
+{
+  "label": "after",
+  "seconds": 15,
+  "bots": 8,
+  "entities": 25,
+  "browser": "159.0.8154.6",
+  "frameMs": {
+    "samples": 1826,
+    "p50": 16.7,
+    "p95": 16.7,
+    "p99": 16.8,
+    "max": 16.8
+  },
+  "sectionsMs": {
+    "simulate": {
+      "samples": 913,
+      "p50": 0.1,
+      "p95": 0.2,
+      "p99": 0.2,
+      "max": 0.4
+    },
+    "render": {
+      "samples": 1826,
+      "p50": 0.3,
+      "p95": 0.5,
+      "p99": 0.6,
+      "max": 0.9
+    },
+    "decode": {
+      "samples": 913,
+      "p50": 0,
+      "p95": 0.1,
+      "p99": 0.1,
+      "max": 0.2
+    },
+    "reconcile": {
+      "samples": 913,
+      "p50": 0,
+      "p95": 0.1,
+      "p99": 0.1,
+      "max": 0.1
+    }
+  },
+  "gc": {
+    "minor": {
+      "count": 21,
+      "totalMs": 9.15,
+      "maxMs": 1.24
+    },
+    "major": {
+      "count": 3,
+      "totalMs": 12.72,
+      "maxMs": 9.83
+    },
+    "majorEvents": [
+      {
+        "atSeconds": 22,
+        "ms": 9.83,
+        "type": "finalize incremental marking via task",
+        "usedBeforeMB": 6.1,
+        "usedAfterMB": 3.8
+      },
+      {
+        "atSeconds": 25.4,
+        "ms": 1.91,
+        "type": "finalize incremental marking via task",
+        "usedBeforeMB": 4.3,
+        "usedAfterMB": 3.8
+      },
+      {
+        "atSeconds": 29.1,
+        "ms": 0.98,
+        "type": "finalize incremental marking via task",
+        "usedBeforeMB": 4.1,
+        "usedAfterMB": 3.8
+      }
+    ]
+  },
+  "allocatedKBPerSecond": 774.6,
+  "topAllocators": [
+    {
+      "name": "draw — main-DzoRmtga.js:8271",
+      "value": "14.8 %"
+    },
+    {
+      "name": "decodeSnapshot$1 — main-DzoRmtga.js:7229",
+      "value": "12.0 %"
+    },
+    {
+      "name": "sampleInto — main-DzoRmtga.js:8057",
+      "value": "7.6 %"
+    },
+    {
+      "name": "draw — main-DzoRmtga.js:7398",
+      "value": "7.2 %"
+    },
+    {
+      "name": "shortestDelta — game-CWo0Sj3D.js:111",
+      "value": "4.4 %"
+    },
+    {
+      "name": "drawBullet — main-DzoRmtga.js:7589",
+      "value": "3.6 %"
+    }
+  ],
+  "topSelfTime": [
+    {
+      "name": "(idle) — (рушій)",
+      "value": "85.3 %"
+    },
+    {
+      "name": "(program) — (рушій)",
+      "value": "11.8 %"
+    },
+    {
+      "name": "fillText — (рушій)",
+      "value": "0.4 %"
+    },
+    {
+      "name": "drawShip — main-DzoRmtga.js:7515",
+      "value": "0.2 %"
+    },
+    {
+      "name": "drawImage — (рушій)",
+      "value": "0.2 %"
+    },
+    {
+      "name": "save — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "measureText — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "(garbage collector) — (рушій)",
+      "value": "0.1 %"
+    },
+    {
+      "name": "decodeSnapshot$1 — main-DzoRmtga.js:7229",
+      "value": "0.1 %"
+    },
+    {
+      "name": "drawArena — main-DzoRmtga.js:7460",
+      "value": "0.1 %"
+    }
+  ]
+}

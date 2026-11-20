@@ -148,17 +148,26 @@ export function mountLobbyView(lobby: Lobby, root: HTMLElement): { dispose(): vo
 
   nameInput.addEventListener('input', updateJoin, { signal });
 
-  createButton.addEventListener(
-    'click',
-    async () => {
-      createButton.disabled = true;
+  // Слухач події не чекає проміса: async-обробник, що відхилився, загубив би помилку.
+  // Тому сам слухач синхронний, а асинхронну частину запускаємо явно й ловимо збій.
+  async function createRoom(): Promise<void> {
+    createButton.disabled = true;
+    try {
       const room = await lobby.createRoom(newRoomInput.value);
-      createButton.disabled = false;
       if (!room) return;
       newRoomInput.value = '';
       selectedId = room.id;
       renderRooms(lobby.rooms);
       updateJoin();
+    } finally {
+      createButton.disabled = false;
+    }
+  }
+
+  createButton.addEventListener(
+    'click',
+    () => {
+      createRoom().catch((error: unknown) => console.warn('[lobby]', error));
     },
     { signal },
   );
@@ -172,7 +181,8 @@ export function mountLobbyView(lobby: Lobby, root: HTMLElement): { dispose(): vo
       } catch {
         /* сховище недоступне — ім'я просто не запам'ятається */
       }
-      lobby.join(selectedId, nameInput.value); // результат прийде подією joined або error
+      // Результат прийде подією joined або error; сам проміс join не відхиляється.
+      void lobby.join(selectedId, nameInput.value);
     },
     { signal },
   );

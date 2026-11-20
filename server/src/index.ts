@@ -41,5 +41,16 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   process.exitCode = 0;
 }
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+// Обробник сигналу нічого не чекає, тож відхилений проміс зупинки ловимо тут самі:
+// інакше це було б «необроблене відхилення» вже під час виходу.
+function onSignal(signal: NodeJS.Signals): void {
+  shutdown(signal).catch((error: unknown) => {
+    app.logger.error('shutdown failed', {
+      error: error instanceof Error ? error.stack : String(error),
+    });
+    process.exit(1);
+  });
+}
+
+process.on('SIGINT', onSignal);
+process.on('SIGTERM', onSignal);

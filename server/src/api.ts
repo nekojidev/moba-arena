@@ -1,6 +1,6 @@
 // HTTP на «голому» node:http: маршрути, читання тіла з обмеженням, потокова віддача.
 
-import { MAX_BOTS } from './match.ts';
+import { MAX_BOTS, STATS_CAPACITY } from './match.ts';
 import { createReadStream } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -12,6 +12,7 @@ import { listReplays, replayPath } from './log/replay.ts';
 import type { Logger } from './logger.ts';
 import type { MatchManager } from './match.ts';
 import { RoomError, type RoomManager } from './rooms.ts';
+import type { RuntimeStats } from './runtime-stats.ts';
 import { serveStatic } from './static.ts';
 import type { WebSocketLayer } from './ws.ts';
 
@@ -116,6 +117,7 @@ export interface RequestHandlerDeps {
   readonly ws: WebSocketLayer;
   readonly logs: MatchLogs;
   readonly logger: Logger;
+  readonly runtime: RuntimeStats;
   readonly startedAt: number;
 }
 
@@ -140,6 +142,7 @@ export function createRequestHandler({
   ws,
   logs,
   logger,
+  runtime,
   startedAt,
 }: RequestHandlerDeps) {
   async function route(request: IncomingMessage, response: ServerResponse): Promise<void> {
@@ -159,9 +162,20 @@ export function createRequestHandler({
       });
     }
 
-    // Як почувається сервер: тривалість кроку матчу і запізнення відносно цільового часу.
+    // Як почувається сервер: тривалість кроку матчу (avg/p50/p99/max) і запізнення відносно
+    // цільового часу — за останні ?window=N кроків (типово 300 = 10 с, щонайбільше STATS_CAPACITY);
+    // process — накопичувальні лічильники процесу (цикл подій, пам'ять, збирач сміття).
     if (pathname === '/api/stats' && method === 'GET') {
-      return sendJson(response, 200, { matches: matches.report(), sockets: ws.stats });
+      const raw = url.searchParams.get('window');
+      const window = raw === null ? undefined : Number(raw);
+      if (window !== undefined && !inRange(window, 1, STATS_CAPACITY)) {
+        throw new HttpProblem(400, `Parameter "window" must be an integer in 1…${STATS_CAPACITY}`);
+      }
+      return sendJson(response, 200, {
+        matches: matches.report(window),
+        sockets: ws.stats,
+        process: runtime.snapshot(),
+      });
     }
 
     if (pathname === '/api/rooms' && method === 'GET') {

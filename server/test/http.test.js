@@ -1,4 +1,4 @@
-import { test, before, after } from 'node:test';
+import { afterAll, beforeAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { request } from 'node:http';
@@ -6,14 +6,14 @@ import { join } from 'node:path';
 import { startApp } from './helpers.js';
 
 let ctx;
-before(async () => {
+beforeAll(async () => {
   ctx = await startApp({ MAX_ROOMS: '5', MAX_BODY_BYTES: '256' });
   await mkdir(join(ctx.config.clientDist, 'assets'), { recursive: true });
   await writeFile(join(ctx.config.clientDist, 'index.html'), '<!doctype html><title>arena</title>');
   await writeFile(join(ctx.config.clientDist, 'assets', 'main.js'), 'console.log(1)');
   await writeFile(join(ctx.dir, 'secret.txt'), 'top secret');
 });
-after(() => ctx.stop());
+afterAll(() => ctx.stop());
 
 // fetch нормалізує /../ ще до відправки, тому «сирі» шляхи шлемо через node:http.
 function raw(path, { method = 'GET' } = {}) {

@@ -1,5 +1,5 @@
 // Передбачення, звірка й інтерполяція — без браузера і без мережі.
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { DT, TICK_MS } from '@moba-arena/shared/protocol.ts';
@@ -85,6 +85,132 @@ test('звірка: стан сервера + повтор непідтверд�
   for (const cmd of commands.slice(2)) expected = stepInput(expected, cmd, DT, ARENA);
   assert.equal(predictor.state.x, expected.x);
   assert.equal(predictor.state.vy, expected.vy);
+});
+
+// Звірка як чиста функція: (стан сервера, ack, буфер input) → передбачений стан.
+// N = 10. У буфері лежать input N−2…N+4 (тобто 8…14), приходить знімок з ack = N.
+function predictorWithBuffer() {
+  const N = 10;
+  const predictor = createPredictor({ arena: ARENA });
+  predictor.reconcile(self(START), 0);
+  const commands = new Map();
+  for (let i = 1; i <= N + 4; i += 1) {
+    const { seq } = predictor.applyInput(command(i));
+    commands.set(seq, command(i));
+  }
+  // Попередній знімок підтвердив усе до N−3: у буфері лишилось рівно N−2…N+4.
+  let acked = START;
+  for (let i = 1; i <= N - 3; i += 1) acked = stepInput(acked, commands.get(i), DT, ARENA);
+  predictor.reconcile(self(acked), N - 3);
+  assert.equal(predictor.pendingCount, 7, 'у буфері N−2…N+4');
+  // Стан сервера після input №N.
+  let server = acked;
+  for (let i = N - 2; i <= N; i += 1) server = stepInput(server, commands.get(i), DT, ARENA);
+  return { N, predictor, commands, server };
+}
+
+const replay = (from, commands, first, last) => {
+  let state = { ...from, thrust: 0, fired: false };
+  for (let i = first; i <= last; i += 1) state = stepInput(state, commands.get(i), DT, ARENA);
+  return state;
+};
+
+test('звірка: знімок з ack N при буфері N−2…N+4 → підтверджені викинуто, решту програно заново', () => {
+  const { N, predictor, commands, server } = predictorWithBuffer();
+  const before = predictor.state;
+
+  const correction = predictor.reconcile(self(server), N);
+
+  assert.equal(predictor.pendingCount, 4, 'лишились N+1…N+4; N−2…N викинуто');
+  const expected = replay(server, commands, N + 1, N + 4);
+  assert.deepEqual(predictor.state, expected, 'стан сервера + 4 непідтверджені input');
+  assert.deepEqual(predictor.state, before, 'і це рівно те, що клієнт уже передбачив');
+  assert.equal(correction, 0);
+  assert.equal(predictor.seq, N + 4, 'лічильник seq звірка не чіпає');
+});
+
+test('звірка — чиста функція від (знімок, буфер): інший стан сервера → той самий повтор від нього', () => {
+  const { N, predictor, commands, server } = predictorWithBuffer();
+  // Сервер побачив зіткнення, якого клієнт не передбачав: інша швидкість і позиція.
+  const bumped = { ...server, x: server.x - 30, vx: server.vx - 200, vy: server.vy + 50 };
+
+  const correction = predictor.reconcile(self(bumped), N);
+
+  const expected = replay(bumped, commands, N + 1, N + 4);
+  assert.deepEqual(predictor.state, expected);
+  assert.ok(correction > 0);
+  assert.equal(correction, predictor.lastCorrection);
+
+  // Повторний той самий знімок нічого не змінює: буфер уже без підтверджених, результат той самий.
+  assert.equal(predictor.reconcile(self(bumped), N), 0);
+  assert.deepEqual(predictor.state, expected);
+  assert.equal(predictor.pendingCount, 4);
+});
+
+test('звірка: застарілий знімок (ack менший за вже підтверджений) буфер не відновлює', () => {
+  const { N, predictor, commands, server } = predictorWithBuffer();
+  predictor.reconcile(self(server), N);
+  // Запізнілий знімок з ack = N−1: input №N у буфері вже немає, тож його не буде програно.
+  const stale = replay(START, commands, 1, N - 1);
+  predictor.reconcile(self(stale), N - 1);
+  assert.equal(predictor.pendingCount, 4);
+  assert.deepEqual(predictor.state, replay(stale, commands, N + 1, N + 4), 'input №N пропущено');
+  assert.notDeepEqual(predictor.state, replay(server, commands, N + 1, N + 4));
+});
+
+test('звірка: ack за межами буфера (усе підтверджено) → стан сервера як є', () => {
+  const { N, predictor, commands } = predictorWithBuffer();
+  const server = replay(START, commands, 1, N + 4);
+  assert.equal(predictor.reconcile(self(server), N + 4), 0);
+  assert.equal(predictor.pendingCount, 0);
+  assert.deepEqual(predictor.state, { ...server, thrust: 0, fired: false });
+});
+
+test('applyInput до першого знімка: input копляться, але стану ще немає', () => {
+  const predictor = createPredictor({ arena: ARENA });
+  assert.equal(predictor.state, null);
+  assert.equal(predictor.pose(0.5), null);
+  assert.deepEqual(predictor.applyInput(command(5)), { seq: 1, fired: false });
+  assert.equal(predictor.pendingCount, 1);
+  predictor.reconcile(self(START), 0);
+  assert.deepEqual(predictor.state, { ...stepInput(START, command(5), DT, ARENA) });
+});
+
+test('predict: false — input лише нумерується й запам’ятовується; reset усе скидає', () => {
+  const predictor = createPredictor({ arena: ARENA });
+  predictor.reconcile(self(START), 0);
+  const { seq, fired } = predictor.applyInput(command(5), { predict: false });
+  assert.deepEqual({ seq, fired }, { seq: 1, fired: false });
+  assert.equal(predictor.state.x, START.x, 'стан не рухався');
+  predictor.reconcile(self({ ...START, x: 900 }), 0, { predict: false });
+  assert.equal(predictor.state.x, 900, 'без повтору input — рівно стан сервера');
+  assert.equal(predictor.pendingCount, 1);
+
+  predictor.reset();
+  assert.equal(predictor.state, null);
+  assert.equal(predictor.pendingCount, 0);
+  assert.equal(predictor.seq, 0);
+});
+
+test('буфер обмежено 120 input: якщо сервер мовчить, найстаріші викидаються', () => {
+  const predictor = createPredictor({ arena: ARENA });
+  predictor.reconcile(self(START), 0);
+  for (let i = 1; i <= 150; i += 1) predictor.applyInput(command(i));
+  assert.equal(predictor.pendingCount, 120);
+  predictor.reconcile(self(START), 100);
+  assert.equal(predictor.pendingCount, 50, 'лишились 101…150');
+});
+
+test('pose: інтерполяція між попереднім і поточним кроком, зокрема через край арени', () => {
+  const predictor = createPredictor({ arena: ARENA });
+  predictor.reconcile(self({ ...START, x: 1599, vx: 300 }), 0);
+  predictor.applyInput({ turn: 0, thrust: 0, brake: false, dash: false, fire: false });
+  const next = predictor.state.x; // 1599 + 300·(1 − 1.6/30)/30 → загорнулось за край
+  assert.ok(next < 10, `x = ${next}`);
+  assert.ok(Math.abs(predictor.pose(0).x - 1599) < 1e-9);
+  assert.ok(Math.abs(predictor.pose(1).x - next) < 1e-9);
+  const middle = predictor.pose(0.5).x;
+  assert.ok(middle > 1599 || middle < next, `середина ${middle} лежить на короткому шляху`);
 });
 
 test('зіткнення на сервері → сплеск поправки, який згладжується, а не стрибає', () => {

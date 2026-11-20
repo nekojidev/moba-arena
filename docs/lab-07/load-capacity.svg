@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="400" viewBox="0 0 760 400" role="img" aria-label="Тривалість кроку сервера (p99) залежно від кількості гравців в одній кімнаті">
+  <rect width="760" height="400" fill="#fcfcfb"/>
+  <text x="64" y="26" font-size="15" font-weight="600" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">Тривалість кроку сервера, p99 — залежно від кількості гравців у кімнаті</text>
+  <text x="64" y="46" font-size="12" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">До 256 гравців p99 кроку лишається під бюджетом</text>
+  <line x1="64" y1="344.0" x2="720" y2="344.0" stroke="#e4e3df" stroke-width="1"/><text x="56" y="348.0" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">0</text>
+  <line x1="64" y1="276.0" x2="720" y2="276.0" stroke="#e4e3df" stroke-width="1"/><text x="56" y="280.0" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">10</text>
+  <line x1="64" y1="208.0" x2="720" y2="208.0" stroke="#e4e3df" stroke-width="1"/><text x="56" y="212.0" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">20</text>
+  <line x1="64" y1="140.0" x2="720" y2="140.0" stroke="#e4e3df" stroke-width="1"/><text x="56" y="144.0" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">30</text>
+  <line x1="64" y1="72.0" x2="720" y2="72.0" stroke="#e4e3df" stroke-width="1"/><text x="56" y="76.0" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">40</text>
+  <text x="84.5" y="362" font-size="11" text-anchor="middle" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">8</text>
+  <text x="146.0" y="362" font-size="11" text-anchor="middle" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">32</text>
+  <text x="228.0" y="362" font-size="11" text-anchor="middle" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">64</text>
+  <text x="392.0" y="362" font-size="11" text-anchor="middle" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">128</text>
+  <text x="556.0" y="362" font-size="11" text-anchor="middle" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">192</text>
+  <text x="720.0" y="362" font-size="11" text-anchor="middle" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">256</text>
+  <text x="56" y="60" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">мс</text>
+  <text x="720" y="384" font-size="11" text-anchor="end" fill="#52514e" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">гравців в одній кімнаті (клієнти шлють input 30 разів/с)</text>
+  <line x1="64" y1="117.3" x2="720" y2="117.3" stroke="#eb6834" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="70" y="109.3" font-size="12" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">бюджет кроку 33,3 мс (30 кроків/с)</text>
+  <polyline points="84.5,330.7 146.0,313.5 228.0,291.6 392.0,282.1 556.0,283.7 720.0,276.3" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="84.5" cy="330.7" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+  <text x="84.5" y="318.7" font-size="12" text-anchor="middle" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">1,96</text>
+  <circle cx="146.0" cy="313.5" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+  <text x="146.0" y="301.5" font-size="12" text-anchor="middle" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">4,49</text>
+  <circle cx="228.0" cy="291.6" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+  <text x="228.0" y="279.6" font-size="12" text-anchor="middle" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">7,71</text>
+  <circle cx="392.0" cy="282.1" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+  <text x="392.0" y="270.1" font-size="12" text-anchor="middle" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">9,10</text>
+  <circle cx="556.0" cy="283.7" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+  <text x="556.0" y="271.7" font-size="12" text-anchor="middle" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">8,87</text>
+  <circle cx="720.0" cy="276.3" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+  <text x="720.0" y="264.3" font-size="12" text-anchor="middle" fill="#0b0b0b" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">9,95</text>
+</svg>
