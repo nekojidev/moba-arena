@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { CODECS, CodecError } from '../src/codec/index.js';
+import { CODECS, CodecError } from '../src/codec/index.ts';
 import {
   dequantizeAngle,
   quantizeAngle,
   quantizePosition,
   snapshotByteLength,
-} from '../src/codec/binary.js';
-import { MESSAGE, PROTOCOL_VERSION } from '../src/protocol.js';
+} from '../src/codec/binary.ts';
+import { MESSAGE, PROTOCOL_VERSION } from '../src/protocol.ts';
 
 const { binary, json } = CODECS;
 

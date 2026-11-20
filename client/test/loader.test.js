@@ -9,9 +9,9 @@ import {
   isRetryable,
   loadAll,
   withRetry,
-} from '../src/assets/loader.js';
-import { Lobby } from '../src/lobby/lobby.js';
-import { once, sleep } from '../src/async.js';
+} from '../src/assets/loader.ts';
+import { Lobby } from '../src/lobby/lobby.ts';
+import { once, sleep } from '../src/async.ts';
 
 const realFetch = globalThis.fetch;
 let calls;
@@ -224,10 +224,12 @@ test('loadAll: concurrent швидший за sequential на тих самих 
   assert.ok(concurrent.elapsedMs < 90, `concurrent ${concurrent.elapsedMs}`);
 });
 
+// Лобі перевіряє кімнати схемою протоколу (roomSchema), тому тут повна форма кімнати.
+const ARENA_CONFIG = { width: 100, height: 100, asteroids: 5, pickups: 2, seed: 1 };
 const ROOMS = {
   rooms: [
-    { id: 'a', name: 'A', players: 1, maxPlayers: 4, arena: { width: 100, height: 100 } },
-    { id: 'full', name: 'Full', players: 4, maxPlayers: 4, arena: { width: 100, height: 100 } },
+    { id: 'a', name: 'A', players: 1, maxPlayers: 4, arena: ARENA_CONFIG },
+    { id: 'full', name: 'Full', players: 4, maxPlayers: 4, arena: ARENA_CONFIG },
   ],
 };
 
@@ -395,15 +397,20 @@ test('Lobby.createRoom: POST, потім оновлення списку; пом
           status: 400,
         });
       }
-      return new Response(JSON.stringify({ room: { id: 'new', name: posted.name } }), {
-        status: 201,
-      });
+      const room = { id: 'new', name: posted.name, players: 0, maxPlayers: 4, arena: ARENA_CONFIG };
+      return new Response(JSON.stringify({ room }), { status: 201 });
     }
     return json(ROOMS);
   };
   const lobby = new Lobby({ url: 'http://test/rooms' });
   const refreshed = once(lobby, 'rooms');
-  assert.deepEqual(await lobby.createRoom('Нова'), { id: 'new', name: 'Нова' });
+  assert.deepEqual(await lobby.createRoom('Нова'), {
+    id: 'new',
+    name: 'Нова',
+    players: 0,
+    maxPlayers: 4,
+    arena: ARENA_CONFIG,
+  });
   await refreshed;
 
   const failed = once(lobby, 'error');
@@ -412,15 +419,16 @@ test('Lobby.createRoom: POST, потім оновлення списку; пом
 });
 
 test('Шина подій світу: fired / hit / exploded / score приходять синхронно', async () => {
-  const { World } = await import('@moba-arena/shared/sim/world.js');
-  const { Ship } = await import('@moba-arena/shared/sim/ship.js');
-  const { Vector2 } = await import('@moba-arena/shared/sim/vector.js');
+  const { World } = await import('@moba-arena/shared/sim/world.ts');
+  const { Ship } = await import('@moba-arena/shared/sim/ship.ts');
+  const { Vector2 } = await import('@moba-arena/shared/sim/vector.ts');
   const world = new World({ arena: { width: 1600, height: 900 } });
   const shooter = world.spawn(new Ship({ pos: new Vector2(300, 400), angle: 0 }));
   const victim = world.spawn(new Ship({ pos: new Vector2(420, 400), team: 'red' }));
   const seen = [];
+  // world.events — типізована шина (Bus): слухач отримує одразу дані події, без event.detail.
   for (const type of ['fired', 'hit', 'exploded', 'score']) {
-    world.events.addEventListener(type, (event) => seen.push(event.type));
+    world.events.on(type, () => seen.push(type));
   }
   const inputs = new Map([
     [shooter.id, { turn: 0, thrust: 0, brake: false, dash: false, fire: true }],

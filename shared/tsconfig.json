@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // Ні DOM, ні типів Node: спільний код не може звернутись до window чи process —
+    // тепер це помилка компіляції, а не лише тест.
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src"]
+}

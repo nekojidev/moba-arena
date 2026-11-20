@@ -1,12 +1,16 @@
 {
   "name": "@moba-arena/shared",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "exports": {
     "./*": "./src/*"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   }
 }

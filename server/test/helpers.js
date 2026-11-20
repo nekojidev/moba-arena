@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
 import { WebSocket } from 'ws';
-import { createApp } from '../src/app.js';
-import { loadConfig } from '../src/config.js';
+import { createApp } from '../src/app.ts';
+import { loadConfig } from '../src/config.ts';
 
 export async function startApp(env = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'moba-arena-'));

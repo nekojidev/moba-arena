@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { runSelftest, SELFTEST_HASH } from '../src/sim/selftest.js';
-import { atan2, cos, sin } from '../src/sim/dmath.js';
-import { integrate, stepInput } from '../src/sim/ship.js';
-import { DT } from '../src/protocol.js';
+import { runSelftest, SELFTEST_HASH } from '../src/sim/selftest.ts';
+import { atan2, cos, sin } from '../src/sim/dmath.ts';
+import { integrate, stepInput } from '../src/sim/ship.ts';
+import { DT } from '../src/protocol.ts';
 
 test('еталонний матч дає відомий хеш (і двічі поспіль — однаковий)', () => {
   const first = runSelftest();

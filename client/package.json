@@ -1,13 +1,14 @@
 {
   "name": "@moba-arena/client",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test",
+    "typecheck": "tsc --noEmit -p .",
     "puzzles": "node scripts/puzzles.js",
     "this-bug": "node scripts/this-bug.js",
     "determinism": "node scripts/determinism.js",

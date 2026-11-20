@@ -7,18 +7,20 @@ import { readdirSync, readFileSync } from 'node:fs';
 function sources(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), dir);
-    return entry.isDirectory() ? sources(url) : entry.name.endsWith('.js') ? [url] : [];
+    return entry.isDirectory() ? sources(url) : entry.name.endsWith('.ts') ? [url] : [];
   });
 }
 
 const files = sources(new URL('../src/', import.meta.url));
 
-test('shared імпортує лише власні файли (відносні шляхи)', () => {
+test('shared імпортує лише власні файли (відносні шляхи) і zod', () => {
   assert.ok(files.length > 20);
   for (const file of files) {
     const source = readFileSync(file, 'utf8');
     for (const [, specifier] of source.matchAll(/from\s+'([^']+)'/g)) {
-      assert.match(specifier, /^\.\.?\/[\w/.-]+\.js$/, `${file.pathname} імпортує ${specifier}`);
+      // Єдина зовнішня залежність — zod (схеми протоколу); він працює і в браузері, і в Node.
+      if (specifier === 'zod') continue;
+      assert.match(specifier, /^\.\.?\/[\w/.-]+\.ts$/, `${file.pathname} імпортує ${specifier}`);
     }
   }
 });

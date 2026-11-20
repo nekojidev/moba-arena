@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // Серверу потрібні типи Node (process, Buffer, node:http…), але не DOM.
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

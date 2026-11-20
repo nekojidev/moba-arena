@@ -2,10 +2,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { DT, TICK_MS } from '@moba-arena/shared/protocol.js';
-import { stepInput } from '@moba-arena/shared/sim/ship.js';
-import { createInterpolator, createServerClock } from '../src/net/interpolation.js';
-import { createPredictor } from '../src/net/prediction.js';
+import { DT, TICK_MS } from '@moba-arena/shared/protocol.ts';
+import { stepInput } from '@moba-arena/shared/sim/ship.ts';
+import { createInterpolator, createServerClock } from '../src/net/interpolation.ts';
+import { createPredictor } from '../src/net/prediction.ts';
 
 const ARENA = { width: 1600, height: 900 };
 const START = {

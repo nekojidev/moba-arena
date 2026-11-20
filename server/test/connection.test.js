@@ -1,9 +1,9 @@
 // Клієнтська обгортка сокета проти справжнього сервера (у Node є глобальний WebSocket).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createConnection } from '../../client/src/net/connection.js';
-import { loadConfig } from '../src/config.js';
-import { createApp } from '../src/app.js';
+import { createConnection } from '../../client/src/net/connection.ts';
+import { loadConfig } from '../src/config.ts';
+import { createApp } from '../src/app.ts';
 import { sleep, startApp } from './helpers.js';
 
 function collect(connection, type) {

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { readFile } from 'node:fs/promises';
 import { connect, sleep, startApp } from './helpers.js';
-import { CLOSE } from '../src/protocol.js';
-import { readEvents, listReplays } from '../src/log/replay.js';
+import { CLOSE } from '@moba-arena/shared/protocol.ts';
+import { readEvents, listReplays } from '../src/log/replay.ts';
 
 test('два клієнти заходять в одну кімнату: бачать одне одного й чат', async () => {
   const ctx = await startApp();
@@ -159,8 +159,9 @@ test('повільному клієнту некритичне не шлемо',
     await slow.next('roster'); // вхід швидкого
 
     // Імітуємо клієнта, що не встигає читати: у його сокета «виріс» буфер відправки.
+    const { stateOf } = ctx.app.ws; // стан з'єднання лежить у WeakMap, а не на сокеті
     const serverSide = [...ctx.app.ws.wss.clients].find(
-      (ws) => ws.state.player.name === 'Повільний',
+      (ws) => stateOf(ws)?.player?.name === 'Повільний',
     );
     Object.defineProperty(serverSide, 'bufferedAmount', { get: () => 5000 });
 
@@ -168,8 +169,8 @@ test('повільному клієнту некритичне не шлемо',
     assert.equal((await fast.next('chat')).text, 'це дійде лише швидкому');
     await sleep(50);
     // Крім чату, повільному не йдуть і знімки стану — вони теж некритичні.
-    assert.ok(serverSide.state.dropped >= 1);
-    assert.equal(ctx.app.ws.stats.dropped, serverSide.state.dropped);
+    assert.ok(stateOf(serverSide).dropped >= 1);
+    assert.equal(ctx.app.ws.stats.dropped, stateOf(serverSide).dropped);
 
     // Критичне (roster) повільному все одно йде.
     fast.socket.close();

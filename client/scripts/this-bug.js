@@ -6,10 +6,10 @@
 // `ship.fire` без дужок — це просто посилання на функцію з Ship.prototype;
 // зв'язок із конкретним героєм губиться в ту мить, коли метод «відривають» від об'єкта.
 
-import { World } from '@moba-arena/shared/sim/world.js';
-import { Ship } from '@moba-arena/shared/sim/ship.js';
-import { Vector2 } from '@moba-arena/shared/sim/vector.js';
-import { ARENA } from '@moba-arena/shared/sim/arena.js';
+import { World } from '@moba-arena/shared/sim/world.ts';
+import { Ship } from '@moba-arena/shared/sim/ship.ts';
+import { Vector2 } from '@moba-arena/shared/sim/vector.ts';
+import { ARENA } from '@moba-arena/shared/sim/arena.ts';
 
 const world = new World({ arena: ARENA });
 const ship = world.spawn(new Ship({ pos: new Vector2(100, 100) }));

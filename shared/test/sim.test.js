@@ -1,18 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { Vector2 } from '../src/sim/vector.js';
-import { Entity } from '../src/sim/entity.js';
-import { World } from '../src/sim/world.js';
-import { Ship, MAX_HP, RESPAWN_DELAY } from '../src/sim/ship.js';
-import { Bullet, BULLET_TTL, BULLET_DAMAGE } from '../src/sim/bullet.js';
-import { Asteroid } from '../src/sim/asteroid.js';
-import { Pickup } from '../src/sim/pickup.js';
-import { Explosion } from '../src/sim/explosion.js';
-import { ARENA } from '../src/sim/arena.js';
-import { withHoming, isHoming } from '../src/sim/behaviors.js';
-import { findCollisions } from '../src/sim/collision.js';
-import { createGame } from '../src/sim/game.js';
+import { Vector2 } from '../src/sim/vector.ts';
+import { Entity } from '../src/sim/entity.ts';
+import { World } from '../src/sim/world.ts';
+import { Ship, MAX_HP, RESPAWN_DELAY } from '../src/sim/ship.ts';
+import { Bullet, BULLET_TTL, BULLET_DAMAGE } from '../src/sim/bullet.ts';
+import { Asteroid } from '../src/sim/asteroid.ts';
+import { Pickup } from '../src/sim/pickup.ts';
+import { Explosion } from '../src/sim/explosion.ts';
+import { ARENA } from '../src/sim/arena.ts';
+import { withHoming, isHoming } from '../src/sim/behaviors.ts';
+import { findCollisions } from '../src/sim/collision.ts';
+import { createGame } from '../src/sim/game.ts';
 
 const STEP = 1 / 60;
 const v = (x, y) => new Vector2(x, y);

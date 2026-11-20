@@ -5,10 +5,10 @@
 // Матч рахується тим самим класом Match, що й на сервері; знімки перехоплюються
 // до кодування і потім проганяються через обидва кодеки.
 
-import { CODECS } from '@moba-arena/shared/codec/index.js';
-import { TICK_RATE } from '@moba-arena/shared/protocol.js';
-import { Match } from '../src/match.js';
-import { Room } from '../src/rooms.js';
+import { CODECS } from '@moba-arena/shared/codec/index.ts';
+import { TICK_RATE } from '@moba-arena/shared/protocol.ts';
+import { Match } from '../src/match.ts';
+import { Room } from '../src/rooms.ts';
 
 const PLAYERS = 4;
 const TICKS = TICK_RATE * 60; // хвилина матчу

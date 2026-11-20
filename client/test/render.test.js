@@ -2,10 +2,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createGame } from '@moba-arena/shared/sim/game.js';
-import { ARENA } from '@moba-arena/shared/sim/arena.js';
-import { lerpPose } from '../src/render/lerp.js';
-import * as draw from '../src/render/draw.js';
+import { createGame } from '@moba-arena/shared/sim/game.ts';
+import { ARENA } from '@moba-arena/shared/sim/arena.ts';
+import { lerpPose } from '../src/render/lerp.ts';
+import * as draw from '../src/render/draw.ts';
 
 function fakeContext() {
   const calls = { count: 0 };

@@ -17,7 +17,7 @@ async function freePort() {
 
 export async function spawnServer(env = {}) {
   const port = await freePort();
-  const child = spawn(process.execPath, [resolve(import.meta.dirname, '../src/index.js')], {
+  const child = spawn(process.execPath, [resolve(import.meta.dirname, '../src/index.ts')], {
     env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', LOG_LEVEL: 'warn', ...env },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

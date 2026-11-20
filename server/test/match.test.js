@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CODECS } from '@moba-arena/shared/codec/index.js';
-import { DT, TICK_MS } from '@moba-arena/shared/protocol.js';
-import { stepInput } from '@moba-arena/shared/sim/ship.js';
-import { Match } from '../src/match.js';
-import { Room } from '../src/rooms.js';
+import { CODECS } from '@moba-arena/shared/codec/index.ts';
+import { DT, TICK_MS } from '@moba-arena/shared/protocol.ts';
+import { stepInput } from '@moba-arena/shared/sim/ship.ts';
+import { Match } from '../src/match.ts';
+import { Room } from '../src/rooms.ts';
 import { connect, sleep, startApp } from './helpers.js';
 
 const logger = { info() {}, warn() {}, error() {} };

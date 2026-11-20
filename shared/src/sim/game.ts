@@ -1,0 +1,148 @@
+// Збирає матч: світ, двоє героїв, големи й руни. Без DOM — працює і в браузері, і в Node.
+
+import type { EntityId } from '../brand.ts';
+import { ARENA, type Arena } from './arena.ts';
+import { Asteroid } from './asteroid.ts';
+import { withHoming } from './behaviors.ts';
+import { botCommand } from './bot.ts';
+import { Pickup, PICKUP_EFFECTS } from './pickup.ts';
+import { Ship, type Command } from './ship.ts';
+import { Vector2 } from './vector.ts';
+import { World } from './world.ts';
+
+const TAU = Math.PI * 2;
+const ASTEROID_INTERVAL = 3; // с
+const PICKUP_INTERVAL = 7; // с
+const HOMING_ASTEROID_CHANCE = 0.3;
+
+function spawnAsteroid(world: World): Asteroid {
+  const speed = 30 + world.rng() * 50;
+  const asteroid = new Asteroid({
+    pos: world.findSafeSpot(44),
+    vel: Vector2.fromAngle(world.rng() * TAU, speed),
+    size: 3,
+    spin: (world.rng() - 0.5) * 1.5,
+  });
+  // Та сама поведінка, що й у снаряда з руною самонаведення, — лише інші параметри.
+  if (world.rng() < HOMING_ASTEROID_CHANCE) {
+    withHoming(asteroid, { turnRate: 0.7, kinds: ['ship'], range: 520 });
+  }
+  return world.spawn(asteroid);
+}
+
+function spawnPickup(world: World): Pickup | null {
+  // noUncheckedIndexedAccess: елемент масиву за індексом — це «значення або undefined»,
+  // і tsc не дасть про це забути.
+  const effect = PICKUP_EFFECTS[Math.floor(world.rng() * PICKUP_EFFECTS.length)];
+  if (!effect) return null;
+  return world.spawn(new Pickup({ pos: world.findSafeSpot(18, 80), effect }));
+}
+
+export interface DirectorOptions {
+  readonly asteroids?: number | undefined;
+  readonly pickups?: number | undefined;
+}
+
+export interface Director {
+  tick(dt: number): void;
+}
+
+// «Директор» матчу: тримає на арені потрібну кількість големів і рун.
+// Спільний для локальної гри й сервера; випадковість — лише з генератора світу.
+export function createDirector(
+  world: World,
+  { asteroids = 5, pickups = 2 }: DirectorOptions = {},
+): Director {
+  for (let i = 0; i < asteroids; i += 1) spawnAsteroid(world);
+  let asteroidTimer = ASTEROID_INTERVAL;
+  let pickupTimer = PICKUP_INTERVAL / 2;
+
+  return {
+    tick(dt) {
+      asteroidTimer -= dt;
+      if (asteroidTimer <= 0) {
+        asteroidTimer = ASTEROID_INTERVAL;
+        if (world.count('asteroid') < asteroids) spawnAsteroid(world);
+      }
+      pickupTimer -= dt;
+      if (pickupTimer <= 0) {
+        pickupTimer = PICKUP_INTERVAL;
+        if (world.count('pickup') < pickups) spawnPickup(world);
+      }
+    },
+  };
+}
+
+export interface GameOptions extends DirectorOptions {
+  readonly seed?: number | undefined;
+  readonly empty?: boolean | undefined;
+  readonly arena?: Arena | undefined;
+  readonly playerName?: string | undefined;
+}
+
+export interface Game {
+  readonly world: World;
+  readonly player: Ship;
+  readonly bot: Ship | null;
+  step(dt: number, playerCommand: Command): void;
+}
+
+// Конфіг матчу приходить ззовні (у Lab 3 — з кімнати лобі, далі — із сервера).
+// `empty: true` — порожня арена з одним героєм у центрі (бенчмарк із Lab 1).
+export function createGame({
+  seed = 1,
+  empty = false,
+  arena = ARENA,
+  asteroids = 5,
+  pickups = 2,
+  playerName = '',
+}: GameOptions = {}): Game {
+  const world = new World({ arena, seed });
+  const inputs = new Map<EntityId, Command>();
+
+  if (empty) {
+    const player = world.spawn(
+      new Ship({
+        pos: new Vector2(arena.width / 2, arena.height / 2),
+        team: 'green',
+        name: playerName,
+      }),
+    );
+    return {
+      world,
+      player,
+      bot: null,
+      step(dt, playerCommand) {
+        inputs.set(player.id, playerCommand);
+        world.step(dt, inputs);
+      },
+    };
+  }
+
+  const player = world.spawn(
+    new Ship({
+      pos: new Vector2(110, arena.height - 110),
+      angle: -Math.PI / 4,
+      team: 'green',
+      name: playerName,
+    }),
+  );
+  const bot = world.spawn(
+    new Ship({
+      pos: new Vector2(arena.width - 110, 110),
+      angle: (Math.PI * 3) / 4,
+      team: 'red',
+      name: 'Бот',
+    }),
+  );
+  const director = createDirector(world, { asteroids, pickups });
+
+  function step(dt: number, playerCommand: Command): void {
+    inputs.set(player.id, playerCommand);
+    inputs.set(bot.id, botCommand(bot, world));
+    director.tick(dt);
+    world.step(dt, inputs);
+  }
+
+  return { world, player, bot, step };
+}

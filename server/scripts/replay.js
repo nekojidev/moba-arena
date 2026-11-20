@@ -1,6 +1,6 @@
 // Підсумок логу матчу: файл читається потоком, подія за подією.
 //   npm run replay -w server -- logs/<id>.ndjson
-import { readEvents } from '../src/log/replay.js';
+import { readEvents } from '../src/log/replay.ts';
 
 const file = process.argv[2];
 if (!file) {
