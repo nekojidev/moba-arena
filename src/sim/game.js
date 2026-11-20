@@ -10,9 +10,7 @@ import { withHoming } from './behaviors.js';
 import { botCommand } from './bot.js';
 
 const TAU = Math.PI * 2;
-const MIN_ASTEROIDS = 5;
 const ASTEROID_INTERVAL = 3; // с
-const MAX_PICKUPS = 2;
 const PICKUP_INTERVAL = 7; // с
 const HOMING_ASTEROID_CHANCE = 0.3;
 
@@ -36,14 +34,26 @@ function spawnPickup(world) {
   return world.spawn(new Pickup({ pos: world.findSafeSpot(18, 80), effect }));
 }
 
+// Конфіг матчу приходить ззовні (у Lab 3 — з кімнати лобі, далі — із сервера).
 // `empty: true` — порожня арена з одним героєм у центрі (бенчмарк із Lab 1).
-export function createGame({ seed = 1, empty = false } = {}) {
-  const world = new World({ arena: ARENA, seed });
+export function createGame({
+  seed = 1,
+  empty = false,
+  arena = ARENA,
+  asteroids = 5,
+  pickups = 2,
+  playerName = '',
+} = {}) {
+  const world = new World({ arena, seed });
   const inputs = new Map();
 
   if (empty) {
     const player = world.spawn(
-      new Ship({ pos: new Vector2(ARENA.width / 2, ARENA.height / 2), team: 'green' }),
+      new Ship({
+        pos: new Vector2(arena.width / 2, arena.height / 2),
+        team: 'green',
+        name: playerName,
+      }),
     );
     return {
       world,
@@ -57,12 +67,22 @@ export function createGame({ seed = 1, empty = false } = {}) {
   }
 
   const player = world.spawn(
-    new Ship({ pos: new Vector2(110, ARENA.height - 110), angle: -Math.PI / 4, team: 'green' }),
+    new Ship({
+      pos: new Vector2(110, arena.height - 110),
+      angle: -Math.PI / 4,
+      team: 'green',
+      name: playerName,
+    }),
   );
   const bot = world.spawn(
-    new Ship({ pos: new Vector2(ARENA.width - 110, 110), angle: (Math.PI * 3) / 4, team: 'red' }),
+    new Ship({
+      pos: new Vector2(arena.width - 110, 110),
+      angle: (Math.PI * 3) / 4,
+      team: 'red',
+      name: 'Бот',
+    }),
   );
-  for (let i = 0; i < MIN_ASTEROIDS; i += 1) spawnAsteroid(world);
+  for (let i = 0; i < asteroids; i += 1) spawnAsteroid(world);
 
   let asteroidTimer = ASTEROID_INTERVAL;
   let pickupTimer = PICKUP_INTERVAL / 2;
@@ -74,12 +94,12 @@ export function createGame({ seed = 1, empty = false } = {}) {
     asteroidTimer -= dt;
     if (asteroidTimer <= 0) {
       asteroidTimer = ASTEROID_INTERVAL;
-      if (world.count('asteroid') < MIN_ASTEROIDS) spawnAsteroid(world);
+      if (world.count('asteroid') < asteroids) spawnAsteroid(world);
     }
     pickupTimer -= dt;
     if (pickupTimer <= 0) {
       pickupTimer = PICKUP_INTERVAL;
-      if (world.count('pickup') < MAX_PICKUPS) spawnPickup(world);
+      if (world.count('pickup') < pickups) spawnPickup(world);
     }
 
     world.step(dt, inputs);

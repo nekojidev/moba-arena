@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MOBA Arena — головоломки порядку виконання</title>
+    <style>
+      body {
+        font:
+          14px/1.5 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+        background: #0b100d;
+        color: #d7f5df;
+        max-width: 760px;
+        margin: 32px auto;
+        padding: 0 16px;
+      }
+      pre {
+        background: #16241b;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+      }
+      .output {
+        color: #f2c14e;
+      }
+      .why {
+        color: #9fc7ab;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Порядок виконання: задачі, мікрозадачі, rAF</h1>
+    <main id="puzzles">Виконую…</main>
+    <script type="module">
+      import { runPuzzles } from '/src/puzzles.js';
+
+      const results = await runPuzzles();
+      const main = document.querySelector('#puzzles');
+      main.textContent = '';
+      for (const puzzle of results) {
+        const section = document.createElement('section');
+        const title = document.createElement('h2');
+        const code = document.createElement('pre');
+        const output = document.createElement('p');
+        const why = document.createElement('p');
+        title.textContent = puzzle.title;
+        code.textContent = puzzle.code;
+        output.className = 'output';
+        output.textContent = '→ ' + puzzle.output.join(' → ');
+        why.className = 'why';
+        why.textContent = puzzle.why;
+        section.append(title, code, output, why);
+        main.append(section);
+      }
+      window.__puzzles = results.map(({ title, output }) => ({ title, output }));
+    </script>
+  </body>
+</html>

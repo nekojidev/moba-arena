@@ -1,0 +1,7 @@
+{
+  "width": 1600,
+  "height": 900,
+  "asteroids": 5,
+  "pickups": 2,
+  "seed": 1
+}

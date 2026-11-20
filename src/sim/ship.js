@@ -39,9 +39,10 @@ export class Ship extends Entity {
   // Змінити здоров'я можна лише через takeDamage()/respawn(), де діють правила гри.
   #hp = MAX_HP;
 
-  constructor({ pos, angle = -Math.PI / 4, team = 'green' }) {
+  constructor({ pos, angle = -Math.PI / 4, team = 'green', name = '' }) {
     super({ kind: 'ship', pos, angle, radius: 16 });
     this.team = team;
+    this.name = name;
     this.command = NO_COMMAND;
     this.thrust = 0;
     this.dashCooldown = 0;
@@ -113,13 +114,17 @@ export class Ship extends Entity {
     }
 
     this.fireCooldown = this.hasEffect('rapid') ? RAPID_FIRE_COOLDOWN : FIRE_COOLDOWN;
+    world.emit('fired', { shipId: this.id, team: this.team, homing: this.hasEffect('homing') });
     return world.spawn(bullet);
   }
 
   update(dt, world) {
     if (this.isDown) {
       this.respawnTimer -= dt;
-      if (this.respawnTimer <= 1e-9) this.respawn(world.findSafeSpot(this.radius));
+      if (this.respawnTimer <= 1e-9) {
+        this.respawn(world.findSafeSpot(this.radius));
+        world.emit('respawned', { shipId: this.id });
+      }
       return;
     }
 

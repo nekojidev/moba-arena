@@ -23,11 +23,17 @@ const HANDLERS = {
   'bullet:ship'(bullet, ship, world) {
     if (bullet.ownerId === ship.id) return;
     world.despawn(bullet.id);
+    world.emit('hit', {
+      targetKind: 'ship',
+      targetId: ship.id,
+      shielded: ship.hasEffect('shield'),
+    });
     if (ship.takeDamage(bullet.damage)) destroyShip(ship, world, bullet.ownerId);
   },
 
   'bullet:asteroid'(bullet, asteroid, world) {
     world.despawn(bullet.id);
+    world.emit('hit', { targetKind: 'asteroid', targetId: asteroid.id, shielded: false });
     if (asteroid.takeDamage(bullet.damage)) destroyAsteroid(asteroid, world, bullet.ownerId);
   },
 
@@ -36,11 +42,19 @@ const HANDLERS = {
 
   'ship:asteroid'(ship, asteroid, world) {
     const wasApproaching = bounce(ship, asteroid, world);
+    if (wasApproaching) {
+      world.emit('hit', {
+        targetKind: 'ship',
+        targetId: ship.id,
+        shielded: ship.hasEffect('shield'),
+      });
+    }
     if (wasApproaching && ship.takeDamage(RAM_DAMAGE)) destroyShip(ship, world, null);
   },
 
   'ship:pickup'(ship, pickup, world) {
     ship.applyEffect(pickup.effect);
+    world.emit('pickup', { shipId: ship.id, effect: pickup.effect });
     world.despawn(pickup.id);
   },
 };
@@ -78,12 +92,14 @@ function destroyShip(ship, world, killerId) {
       color: ship.team === 'green' ? '#7ef0c0' : '#ff8a7a',
     }),
   );
+  world.emit('exploded', { kind: 'ship', id: ship.id, killerId });
   ship.goDown(); // герой лишається у світі (його id потрібен вводу й рахунку), але «лежить» 2 с
   if (killerId !== null) world.addScore(killerId, SCORE_SHIP);
 }
 
 function destroyAsteroid(asteroid, world, killerId) {
   world.despawn(asteroid.id);
+  world.emit('exploded', { kind: 'asteroid', id: asteroid.id, killerId });
   world.spawn(new Explosion({ pos: asteroid.pos, rng: world.rng, count: 8 + asteroid.size * 6 }));
   world.addScore(killerId, SCORE_ASTEROID * asteroid.size);
 

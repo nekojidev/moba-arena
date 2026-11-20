@@ -1,0 +1,100 @@
+{
+  "frames": {
+    "hero-green": {
+      "sheet": "heroes",
+      "x": 0,
+      "y": 0,
+      "w": 192,
+      "h": 192,
+      "radius": 32
+    },
+    "hero-green-thrust": {
+      "sheet": "heroes",
+      "x": 192,
+      "y": 0,
+      "w": 192,
+      "h": 192,
+      "radius": 32
+    },
+    "hero-red": {
+      "sheet": "heroes",
+      "x": 384,
+      "y": 0,
+      "w": 192,
+      "h": 192,
+      "radius": 32
+    },
+    "hero-red-thrust": {
+      "sheet": "heroes",
+      "x": 576,
+      "y": 0,
+      "w": 192,
+      "h": 192,
+      "radius": 32
+    },
+    "golem": {
+      "sheet": "objects",
+      "x": 0,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "radius": 50
+    },
+    "golem-homing": {
+      "sheet": "objects",
+      "x": 128,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "radius": 50
+    },
+    "rune-shield": {
+      "sheet": "objects",
+      "x": 256,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "radius": 48
+    },
+    "rune-rapid": {
+      "sheet": "objects",
+      "x": 384,
+      "y": 0,
+      "w": 128,
+      "h": 128,
+      "radius": 48
+    },
+    "rune-homing": {
+      "sheet": "objects",
+      "x": 0,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "radius": 48
+    },
+    "bolt-green": {
+      "sheet": "objects",
+      "x": 128,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "radius": 16
+    },
+    "bolt-red": {
+      "sheet": "objects",
+      "x": 256,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "radius": 16
+    },
+    "bolt-homing": {
+      "sheet": "objects",
+      "x": 384,
+      "y": 128,
+      "w": 128,
+      "h": 128,
+      "radius": 16
+    }
+  }
+}

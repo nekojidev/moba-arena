@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="192" viewBox="0 0 768 192">
+  <g transform="translate(96 96) scale(2)">
+    <defs>
+      <radialGradient id="body-green" cx="35%" cy="35%" r="75%">
+        <stop offset="0" stop-color="#b7ffe3"/><stop offset="0.55" stop-color="#3fd6a3"/>
+        <stop offset="1" stop-color="#1f8f6a"/>
+      </radialGradient>
+      <linearGradient id="flame-green" x1="1" x2="0">
+        <stop offset="0" stop-color="#78dcff" stop-opacity="0.95"/>
+        <stop offset="1" stop-color="#78dcff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    
+    <polygon points="6,-15 -24,-11 -17,0 -24,11 6,15" fill="#1f8f6a" stroke="#14604a" stroke-width="1.5" stroke-linejoin="round"/>
+    <polygon points="2,-9 -18,-7 -13,0 -18,7 2,9" fill="#14604a" opacity="0.6"/>
+    <circle cx="0" cy="-12" r="4.5" fill="#14604a"/>
+    <circle cx="0" cy="12" r="4.5" fill="#14604a"/>
+    <circle r="13" fill="url(#body-green)" stroke="#14604a" stroke-width="1.2"/>
+    <circle cx="5" cy="0" r="6" fill="#e6fff5"/>
+    <circle cx="7.5" cy="-2.2" r="1.2" fill="#1b2a22"/>
+    <circle cx="7.5" cy="2.2" r="1.2" fill="#1b2a22"/>
+    <line x1="-8" y1="17" x2="24" y2="17" stroke="#c9a25a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="27" cy="17" r="8" fill="#7ef0ff" opacity="0.3"/>
+    <circle cx="27" cy="17" r="5" fill="#7ef0ff" stroke="#e8fdff" stroke-width="1"/>
+  </g>
+  <g transform="translate(288 96) scale(2)">
+    <defs>
+      <radialGradient id="body-greenT" cx="35%" cy="35%" r="75%">
+        <stop offset="0" stop-color="#b7ffe3"/><stop offset="0.55" stop-color="#3fd6a3"/>
+        <stop offset="1" stop-color="#1f8f6a"/>
+      </radialGradient>
+      <linearGradient id="flame-greenT" x1="1" x2="0">
+        <stop offset="0" stop-color="#78dcff" stop-opacity="0.95"/>
+        <stop offset="1" stop-color="#78dcff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="-14,-9 -44,0 -14,9" fill="url(#flame-greenT)"/>
+       <polygon points="-14,-5 -32,0 -14,5" fill="#ffffff" opacity="0.7"/>
+    <polygon points="6,-15 -24,-11 -17,0 -24,11 6,15" fill="#1f8f6a" stroke="#14604a" stroke-width="1.5" stroke-linejoin="round"/>
+    <polygon points="2,-9 -18,-7 -13,0 -18,7 2,9" fill="#14604a" opacity="0.6"/>
+    <circle cx="0" cy="-12" r="4.5" fill="#14604a"/>
+    <circle cx="0" cy="12" r="4.5" fill="#14604a"/>
+    <circle r="13" fill="url(#body-greenT)" stroke="#14604a" stroke-width="1.2"/>
+    <circle cx="5" cy="0" r="6" fill="#e6fff5"/>
+    <circle cx="7.5" cy="-2.2" r="1.2" fill="#1b2a22"/>
+    <circle cx="7.5" cy="2.2" r="1.2" fill="#1b2a22"/>
+    <line x1="-8" y1="17" x2="24" y2="17" stroke="#c9a25a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="27" cy="17" r="8" fill="#7ef0ff" opacity="0.3"/>
+    <circle cx="27" cy="17" r="5" fill="#7ef0ff" stroke="#e8fdff" stroke-width="1"/>
+  </g>
+  <g transform="translate(480 96) scale(2)">
+    <defs>
+      <radialGradient id="body-red" cx="35%" cy="35%" r="75%">
+        <stop offset="0" stop-color="#ffc2bb"/><stop offset="0.55" stop-color="#e2574c"/>
+        <stop offset="1" stop-color="#a8342c"/>
+      </radialGradient>
+      <linearGradient id="flame-red" x1="1" x2="0">
+        <stop offset="0" stop-color="#78dcff" stop-opacity="0.95"/>
+        <stop offset="1" stop-color="#78dcff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    
+    <polygon points="6,-15 -24,-11 -17,0 -24,11 6,15" fill="#a8342c" stroke="#6f201b" stroke-width="1.5" stroke-linejoin="round"/>
+    <polygon points="2,-9 -18,-7 -13,0 -18,7 2,9" fill="#6f201b" opacity="0.6"/>
+    <circle cx="0" cy="-12" r="4.5" fill="#6f201b"/>
+    <circle cx="0" cy="12" r="4.5" fill="#6f201b"/>
+    <circle r="13" fill="url(#body-red)" stroke="#6f201b" stroke-width="1.2"/>
+    <circle cx="5" cy="0" r="6" fill="#ffe9e6"/>
+    <circle cx="7.5" cy="-2.2" r="1.2" fill="#1b2a22"/>
+    <circle cx="7.5" cy="2.2" r="1.2" fill="#1b2a22"/>
+    <line x1="-8" y1="17" x2="24" y2="17" stroke="#c9a25a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="27" cy="17" r="8" fill="#7ef0ff" opacity="0.3"/>
+    <circle cx="27" cy="17" r="5" fill="#7ef0ff" stroke="#e8fdff" stroke-width="1"/>
+  </g>
+  <g transform="translate(672 96) scale(2)">
+    <defs>
+      <radialGradient id="body-redT" cx="35%" cy="35%" r="75%">
+        <stop offset="0" stop-color="#ffc2bb"/><stop offset="0.55" stop-color="#e2574c"/>
+        <stop offset="1" stop-color="#a8342c"/>
+      </radialGradient>
+      <linearGradient id="flame-redT" x1="1" x2="0">
+        <stop offset="0" stop-color="#78dcff" stop-opacity="0.95"/>
+        <stop offset="1" stop-color="#78dcff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="-14,-9 -44,0 -14,9" fill="url(#flame-redT)"/>
+       <polygon points="-14,-5 -32,0 -14,5" fill="#ffffff" opacity="0.7"/>
+    <polygon points="6,-15 -24,-11 -17,0 -24,11 6,15" fill="#a8342c" stroke="#6f201b" stroke-width="1.5" stroke-linejoin="round"/>
+    <polygon points="2,-9 -18,-7 -13,0 -18,7 2,9" fill="#6f201b" opacity="0.6"/>
+    <circle cx="0" cy="-12" r="4.5" fill="#6f201b"/>
+    <circle cx="0" cy="12" r="4.5" fill="#6f201b"/>
+    <circle r="13" fill="url(#body-redT)" stroke="#6f201b" stroke-width="1.2"/>
+    <circle cx="5" cy="0" r="6" fill="#ffe9e6"/>
+    <circle cx="7.5" cy="-2.2" r="1.2" fill="#1b2a22"/>
+    <circle cx="7.5" cy="2.2" r="1.2" fill="#1b2a22"/>
+    <line x1="-8" y1="17" x2="24" y2="17" stroke="#c9a25a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="27" cy="17" r="8" fill="#7ef0ff" opacity="0.3"/>
+    <circle cx="27" cy="17" r="5" fill="#7ef0ff" stroke="#e8fdff" stroke-width="1"/>
+  </g>
+</svg>

@@ -25,6 +25,10 @@ export class World {
     this.collide = collide; // системи можна підмінити — це звичайні функції
     this.resolve = resolve;
     this.score = new Map(); // id героя → очки
+    // Шина подій: симуляція лише повідомляє, ЩО сталося ("fired", "hit", "exploded", …).
+    // Хто слухає — звук, HUD, мережа — вона не знає й не імпортує.
+    // EventTarget і CustomEvent є і в браузері, і в Node, тож sim лишається без DOM.
+    this.events = new EventTarget();
     this.time = 0;
     this.tick = 0;
   }
@@ -70,8 +74,15 @@ export class World {
     return total;
   }
 
+  // dispatchEvent синхронний: слухачі відпрацюють ще до повернення з emit, у тому ж кроці.
+  emit(type, detail) {
+    this.events.dispatchEvent(new CustomEvent(type, { detail }));
+  }
+
   addScore(id, points) {
-    this.score.set(id, (this.score.get(id) ?? 0) + points);
+    const total = (this.score.get(id) ?? 0) + points;
+    this.score.set(id, total);
+    this.emit('score', { id, points, total });
   }
 
   // Випадкова точка, поруч із якою нікого немає. Випадковість — із сіяного генератора світу.

@@ -12,7 +12,10 @@
     "format:check": "prettier --check .",
     "determinism": "node scripts/determinism.js",
     "test": "node --test",
-    "this-bug": "node scripts/this-bug.js"
+    "this-bug": "node scripts/this-bug.js",
+    "make-sprites": "node scripts/make-sprites.js",
+    "make-sounds": "node scripts/make-sounds.js",
+    "puzzles": "node scripts/puzzles.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

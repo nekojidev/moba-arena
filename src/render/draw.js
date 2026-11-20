@@ -1,7 +1,9 @@
 // Усе малювання. Функції отримують ctx і дані — ігрового стану тут немає.
-// Кожна drawX(ctx, entity, pose, timeMs): pose — інтерпольовані { x, y, angle }.
+// Кожна drawX(ctx, entity, pose, timeMs, sprites): pose — інтерпольовані { x, y, angle }.
+// Якщо спрайта немає (не завантажився) — малюємо запасний векторний варіант з Lab 2.
 
 import { isHoming } from '../sim/behaviors.js';
+import { NO_SPRITES } from './sprites.js';
 
 const TAU = Math.PI * 2;
 
@@ -81,7 +83,7 @@ function drawBase(ctx, x, y, color) {
 
 // Герой намальований у початку координат обличчям праворуч (+x);
 // на місце його ставить трансформація canvas, а не перерахунок вершин.
-export function drawShip(ctx, ship, pose, timeMs) {
+export function drawShip(ctx, ship, pose, timeMs, sprites = NO_SPRITES) {
   if (ship.isDown) return;
   const colors = TEAMS[ship.team] ?? TEAMS.green;
 
@@ -93,6 +95,12 @@ export function drawShip(ctx, ship, pose, timeMs) {
   ctx.fillRect(-20, -34, 40, 5);
   ctx.fillStyle = colors.body;
   ctx.fillRect(-20, -34, 40 * (ship.hp / 100), 5);
+  if (ship.name) {
+    ctx.font = '12px ui-monospace, Menlo, Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillText(ship.name, 0, -40);
+  }
 
   if (ship.hasEffect('shield')) {
     ctx.strokeStyle = EFFECT_COLORS.shield;
@@ -105,6 +113,12 @@ export function drawShip(ctx, ship, pose, timeMs) {
   }
 
   ctx.rotate(pose.angle);
+
+  const frame = `hero-${ship.team}${ship.thrust > 0 ? '-thrust' : ''}`;
+  if (sprites.draw(ctx, frame, ship.radius)) {
+    ctx.restore();
+    return;
+  }
 
   if (ship.thrust > 0) {
     // «Полум'я тяги» — чарівний слід, що мерехтить.
@@ -159,11 +173,16 @@ export function drawShip(ctx, ship, pose, timeMs) {
   ctx.restore();
 }
 
-export function drawBullet(ctx, bullet, pose) {
+export function drawBullet(ctx, bullet, pose, timeMs, sprites = NO_SPRITES) {
   const color = isHoming(bullet) ? EFFECT_COLORS.homing : (TEAMS[bullet.team] ?? TEAMS.green).bolt;
   ctx.save();
   ctx.translate(pose.x, pose.y);
   ctx.rotate(pose.angle);
+  const frame = isHoming(bullet) ? 'bolt-homing' : `bolt-${bullet.team}`;
+  if (sprites.draw(ctx, frame, bullet.radius)) {
+    ctx.restore();
+    return;
+  }
   ctx.strokeStyle = color;
   ctx.globalAlpha = 0.5;
   ctx.lineWidth = 4;
@@ -192,11 +211,15 @@ function rockOutline(id, radius) {
   return points;
 }
 
-export function drawAsteroid(ctx, asteroid, pose) {
+export function drawAsteroid(ctx, asteroid, pose, timeMs, sprites = NO_SPRITES) {
   const seeking = isHoming(asteroid);
   ctx.save();
   ctx.translate(pose.x, pose.y);
   ctx.rotate(pose.angle);
+  if (sprites.draw(ctx, seeking ? 'golem-homing' : 'golem', asteroid.radius)) {
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = seeking ? '#5d4a6e' : '#6b6f66';
   ctx.strokeStyle = seeking ? EFFECT_COLORS.homing : '#9aa093';
   ctx.lineWidth = 2;
@@ -216,13 +239,17 @@ export function drawAsteroid(ctx, asteroid, pose) {
   ctx.restore();
 }
 
-export function drawPickup(ctx, pickup, pose, timeMs) {
+export function drawPickup(ctx, pickup, pose, timeMs, sprites = NO_SPRITES) {
   const color = EFFECT_COLORS[pickup.effect.type] ?? '#ffffff';
   const pulse = 1 + 0.08 * Math.sin(timeMs * 0.006);
   ctx.save();
   ctx.translate(pose.x, pose.y);
   ctx.globalAlpha = pickup.ttl < 3 ? 0.4 + 0.4 * Math.abs(Math.sin(timeMs * 0.01)) : 1;
   ctx.scale(pulse, pulse);
+  if (sprites.draw(ctx, `rune-${pickup.effect.type}`, pickup.radius)) {
+    ctx.restore();
+    return;
+  }
   ctx.rotate(timeMs * 0.001);
   ctx.strokeStyle = color;
   ctx.lineWidth = 3;

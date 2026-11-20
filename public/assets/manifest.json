@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "items": [
+    { "id": "arena", "type": "json", "url": "arena.json" },
+    { "id": "atlas", "type": "json", "url": "sprites/atlas.json", "optional": true },
+    { "id": "heroes", "type": "image", "url": "sprites/heroes.png", "optional": true },
+    { "id": "objects", "type": "image", "url": "sprites/objects.png", "optional": true },
+    { "id": "shoot", "type": "audio", "url": "audio/shoot.wav", "optional": true },
+    { "id": "hit", "type": "audio", "url": "audio/hit.wav", "optional": true },
+    { "id": "explode", "type": "audio", "url": "audio/explode.wav", "optional": true },
+    { "id": "pickup", "type": "audio", "url": "audio/pickup.wav", "optional": true }
+  ]
+}

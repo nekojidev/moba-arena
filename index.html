@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MOBA Arena — Lab 01</title>
+    <title>MOBA Arena</title>
     <style>
       html,
       body {
@@ -11,11 +11,15 @@
         height: 100%;
         background: #0b100d;
         overflow: hidden;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
       }
       canvas {
         display: block;
         width: 100vw;
         height: 100vh;
+      }
+      [hidden] {
+        display: none !important;
       }
       nav {
         position: fixed;
@@ -23,10 +27,7 @@
         top: 12px;
         display: flex;
         gap: 6px;
-        font:
-          12px ui-monospace,
-          Menlo,
-          monospace;
+        font-size: 12px;
       }
       nav a {
         color: #cfe8d6;
@@ -40,16 +41,140 @@
         border-color: #f2c14e;
         color: #f2c14e;
       }
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+      .loading-button {
+        position: fixed;
+        left: 50%;
+        top: calc(50% + 24px);
+        transform: translateX(-50%);
+        padding: 8px 18px;
+        border-radius: 6px;
+        border: 1px solid #2f4a39;
+        background: #16241b;
+        color: #cfe8d6;
+        font-size: 14px;
+      }
+      #loading-retry {
+        border-color: #f2c14e;
+        color: #f2c14e;
+      }
+      #lobby {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(11, 16, 13, 0.92);
+        color: #d7f5df;
+      }
+      #lobby form {
+        width: min(460px, calc(100vw - 32px));
+        display: grid;
+        gap: 12px;
+      }
+      #lobby h1 {
+        margin: 0;
+        font-size: 28px;
+      }
+      #lobby h2 {
+        margin: 6px 0 0;
+        font-size: 13px;
+        font-weight: normal;
+        color: #9fc7ab;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      #lobby label {
+        display: grid;
+        gap: 4px;
+        font-size: 13px;
+        color: #9fc7ab;
+      }
+      #lobby input {
+        font: inherit;
+        font-size: 16px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid #2f4a39;
+        background: #0f1813;
+        color: #d7f5df;
+      }
+      #lobby .rooms {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 6px;
+        min-height: 60px;
+      }
+      #lobby .room {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 12px;
+        text-align: left;
+        padding: 10px 12px;
+        border-radius: 6px;
+        border: 1px solid #2f4a39;
+        background: #0f1813;
+        color: #d7f5df;
+      }
+      #lobby .room span {
+        grid-column: 1;
+        font-size: 12px;
+        color: #7d9886;
+      }
+      #lobby .room em {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+        font-style: normal;
+        color: #9fc7ab;
+      }
+      #lobby .room.selected {
+        border-color: #3fd6a3;
+        background: #16241b;
+      }
+      #lobby .room.full em {
+        color: #e2574c;
+      }
+      #lobby .status {
+        margin: 0;
+        min-height: 1.3em;
+        font-size: 12px;
+        color: #7d9886;
+      }
+      #lobby .status.error {
+        color: #ff9a8a;
+      }
+      #lobby button[type='submit'] {
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #3fd6a3;
+        background: #3fd6a3;
+        color: #0b100d;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      #lobby button[type='submit']:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
     <canvas id="game"></canvas>
-    <nav id="modes">
-      <a href="./" data-mode="">норма</a>
-      <a href="?exp=block" data-mode="exp=block">exp 1: блок 100 мс</a>
-      <a href="?exp=interval" data-mode="exp=interval">exp 2: setInterval</a>
-      <a href="?bench" data-mode="bench">exp 3: fixed + bench</a>
-      <a href="?exp=variable&bench" data-mode="exp=variable&bench">exp 3: variable + bench</a>
+    <button id="loading-cancel" class="loading-button" hidden>Скасувати</button>
+    <button id="loading-retry" class="loading-button" hidden>Спробувати ще раз</button>
+    <div id="lobby" hidden></div>
+    <nav id="modes" hidden>
+      <a href="./">лобі</a>
+      <a href="?exp=block">exp 1: блок 100 мс</a>
+      <a href="?exp=interval">exp 2: setInterval</a>
+      <a href="?bench">exp 3: fixed + bench</a>
+      <a href="?exp=variable&bench">exp 3: variable + bench</a>
     </nav>
     <script type="module" src="/src/main.js"></script>
   </body>
