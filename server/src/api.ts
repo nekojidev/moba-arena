@@ -10,6 +10,7 @@ import type { ServerConfig } from './config.ts';
 import type { MatchLogs } from './log/matchlog.ts';
 import { listReplays, replayPath } from './log/replay.ts';
 import type { Logger } from './logger.ts';
+import type { Metrics } from './metrics.ts';
 import type { MatchManager } from './match.ts';
 import { RoomError, type RoomManager } from './rooms.ts';
 import type { RuntimeStats } from './runtime-stats.ts';
@@ -118,7 +119,19 @@ export interface RequestHandlerDeps {
   readonly logs: MatchLogs;
   readonly logger: Logger;
   readonly runtime: RuntimeStats;
+  readonly metrics: Metrics;
   readonly startedAt: number;
+  // false — сервер зупиняється (або ще не слухає) і нових гравців не приймає.
+  readonly isReady: () => boolean;
+}
+
+function sendText(response: ServerResponse, status: number, contentType: string, body: string) {
+  response.writeHead(status, {
+    'content-type': contentType,
+    'content-length': Buffer.byteLength(body),
+    'cache-control': 'no-store',
+  });
+  response.end(body);
 }
 
 function parseBotCount(buffer: Buffer): number {
@@ -143,16 +156,23 @@ export function createRequestHandler({
   logs,
   logger,
   runtime,
+  metrics,
   startedAt,
+  isReady,
 }: RequestHandlerDeps) {
   async function route(request: IncomingMessage, response: ServerResponse): Promise<void> {
     const url = new URL(request.url ?? '/', 'http://localhost');
     const { pathname } = url;
     const method = request.method;
 
+    // /health — «процес живий» (liveness): 200, доки він узагалі відповідає. Платформа
+    // за цією перевіркою ПЕРЕЗАПУСКАЄ контейнер, тому вона не залежить ні від чого зовнішнього
+    // і лишається 200 навіть під час зупинки.
     if (pathname === '/health' && method === 'GET') {
       return sendJson(response, 200, {
         status: 'ok',
+        version: config.version,
+        ready: isReady(),
         uptime: Math.round((Date.now() - startedAt) / 1000),
         rooms: rooms.size,
         connections: ws.connections(),
@@ -160,6 +180,56 @@ export function createRequestHandler({
         openLogs: logs.activeCount,
         rss: process.memoryUsage().rss,
       });
+    }
+
+    // /ready — «можна слати гравців» (readiness): за нею балансувальник вирішує, чи
+    // направляти сюди нові з'єднання. Під час зупинки — 503: старі гравці ще отримують
+    // свої останні кадри, а нових сюди вже не ведуть. Заповненість (усі місця зайняті)
+    // статус НЕ міняє: з одним екземпляром сервера 503 сховав би від гравців і саме лобі,
+    // а «кімната заповнена» лобі покаже й так. Тому вона лише в тілі відповіді.
+    if (pathname === '/ready' && method === 'GET') {
+      const ready = isReady();
+      return sendJson(response, ready ? 200 : 503, {
+        status: ready ? 'ready' : 'shutting_down',
+        version: config.version,
+        connections: ws.connections(),
+        capacity: config.maxRooms * config.maxPlayersPerRoom,
+        rooms: rooms.size,
+        maxRooms: config.maxRooms,
+      });
+    }
+
+    // Метрики в текстовому форматі Prometheus. ?window=N — за скільки останніх кроків
+    // рахувати квантилі тривалості кроку (типово 300 = 10 с).
+    if (pathname === '/metrics' && method === 'GET') {
+      const raw = url.searchParams.get('window');
+      const window = raw === null ? undefined : Number(raw);
+      if (window !== undefined && !inRange(window, 1, STATS_CAPACITY)) {
+        throw new HttpProblem(400, `Parameter "window" must be an integer in 1…${STATS_CAPACITY}`);
+      }
+      const reports = matches.report(window);
+      const all = matches.tickSummary(window);
+      const body = metrics.render({
+        version: config.version,
+        connections: ws.connections(),
+        players: rooms.list().reduce((sum, room) => sum + room.size, 0),
+        rooms: rooms.size,
+        ready: isReady(),
+        uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
+        tickAll: { p50: all.p50, p99: all.p99 },
+        ticks: reports.map((report) => ({
+          room: report.room,
+          players: report.players,
+          tick: report.tick,
+          p50: report.tickDurationMs.p50,
+          p99: report.tickDurationMs.p99,
+          max: report.tickDurationMs.max,
+          lateP50: report.tickLatenessMs.p50,
+          lateP99: report.tickLatenessMs.p99,
+          overruns: report.overruns,
+        })),
+      });
+      return sendText(response, 200, 'text/plain; version=0.0.4; charset=utf-8', body);
     }
 
     // Як почувається сервер: тривалість кроку матчу (avg/p50/p99/max) і запізнення відносно
@@ -174,6 +244,7 @@ export function createRequestHandler({
       return sendJson(response, 200, {
         matches: matches.report(window),
         sockets: ws.stats,
+        rejections: metrics.rejections(),
         process: runtime.snapshot(),
       });
     }
@@ -186,7 +257,7 @@ export function createRequestHandler({
       const { name, arena } = parseRoomRequest(await readBody(request, config.maxBodyBytes));
       try {
         const room = rooms.create({ name, arena });
-        logger.info('room created', { room: room.id, name });
+        logger.info('room created', { roomId: room.id, name });
         return sendJson(response, 201, { room });
       } catch (error) {
         if (error instanceof RoomError) throw new HttpProblem(409, error.message);
@@ -201,7 +272,7 @@ export function createRequestHandler({
       if (!match) throw new HttpProblem(409, 'Match is not running: join the room first');
       const count = parseBotCount(await readBody(request, config.maxBodyBytes));
       const bots = match.addBots(count);
-      logger.info('bots added', { room: botsRoom, bots });
+      logger.info('bots added', { roomId: botsRoom, bots });
       return sendJson(response, 200, { bots });
     }
 
@@ -240,6 +311,17 @@ export function createRequestHandler({
       return sendJson(response, 200, { blockedMs: ms });
     }
 
+    // ЛИШЕ ДЛЯ ДОСЛІДУ Й ТЕСТІВ: помилка, якої ніхто не ловить. Сервер має голосно впасти
+    // (запис fatal зі стеком, код завершення 1), а не мовчки працювати далі в невідомому стані.
+    if (config.debugRoutes && pathname === '/api/debug/crash' && method === 'POST') {
+      const kind = url.searchParams.get('kind') === 'rejection' ? 'rejection' : 'exception';
+      setImmediate(() => {
+        if (kind === 'rejection') void Promise.reject(new Error('debug crash: rejection'));
+        else throw new Error('debug crash: exception');
+      });
+      return sendJson(response, 202, { crashing: kind });
+    }
+
     if (pathname.startsWith('/api/')) throw new HttpProblem(404, 'No such endpoint');
 
     if (method === 'GET' || method === 'HEAD') {
@@ -259,7 +341,12 @@ export function createRequestHandler({
       if (status === 500) {
         // Відхилити проміс можна чим завгодно, тож stack беремо лише у справжньої помилки.
         const details = error instanceof Error ? error.stack : String(error);
-        logger.error('request failed', { url: request.url, error: details });
+        // Лише метод і шлях: заголовки (cookie, authorization) у лог не йдуть ніколи.
+        logger.error('request failed', {
+          method: request.method,
+          path: request.url?.split('?')[0],
+          error: details,
+        });
       }
       if (response.headersSent) {
         response.destroy();

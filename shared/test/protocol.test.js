@@ -199,6 +199,17 @@ describe('parseServerMessage', () => {
       },
       {
         v: 1,
+        type: 'welcome',
+        playerId: 'p1',
+        shipId: 7,
+        room: ROOM,
+        tickRate: 30,
+        codec: 'json',
+        version: 'abc1234',
+      },
+      { v: 1, type: 'shutdown', reason: 'server is restarting' },
+      {
+        v: 1,
         type: 'roster',
         players: [
           { id: 'p1', name: 'Оля', shipId: 7 },
@@ -236,6 +247,10 @@ describe('parseServerMessage', () => {
       code: CLOSE.BAD_MESSAGE,
       reason: 'invalid message: field "t"',
     });
+    assert.equal(
+      parseServerMessage({ v: 1, type: 'shutdown' }).reason,
+      'invalid message: field "reason"',
+    );
     const badEvent = { v: 1, type: 'events', tick: 1, events: [{ type: 'score', id: 1 }] };
     assert.equal(parseServerMessage(badEvent).reason, 'invalid message: field "events.0.type"');
     const badRoom = {

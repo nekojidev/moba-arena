@@ -6,6 +6,7 @@
 
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { LOG_LEVELS } from './logger.ts';
 
 export class ConfigError extends Error {
   readonly problems: readonly string[];
@@ -17,7 +18,6 @@ export class ConfigError extends Error {
   }
 }
 
-const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'silent'] as const;
 const COLLISION_SYSTEMS = ['naive', 'hash'] as const;
 
 // Змінної немає або вона порожня (PORT=) — однаково «не задано»: спрацює типове значення.
@@ -48,6 +48,35 @@ function text(fallback: string) {
   return z.preprocess(blankAsMissing, z.string().default(fallback));
 }
 
+// Список origin-ів через кому: "https://game.example.com,https://www.example.com".
+// Кожен запис має бути саме origin-ом (схема://хост[:порт]) — без шляху й без «/» в кінці,
+// бо порівнюється із заголовком Origin байт у байт. Порожньо — перевірку вимкнено.
+function originList() {
+  return z.preprocess(
+    blankAsMissing,
+    z
+      .string()
+      .transform((raw) =>
+        raw
+          .split(',')
+          .map((item) => item.trim().toLowerCase())
+          .filter((item) => item !== ''),
+      )
+      .refine(
+        (items) =>
+          items.every((item) => {
+            try {
+              return new URL(item).origin === item;
+            } catch {
+              return false; // не URL узагалі
+            }
+          }),
+        { error: 'потрібні origin-и через кому, наприклад https://game.example.com' },
+      )
+      .default([]),
+  );
+}
+
 // Ключі — імена змінних оточення: так шлях помилки Zod одразу каже, яка змінна погана.
 const envSchema = z.object({
   PORT: integer(3000, { min: 0, max: 65535 }), // 0 — будь-який вільний (тести)
@@ -59,6 +88,20 @@ const envSchema = z.object({
     z.enum(LOG_LEVELS, { error: `дозволено ${LOG_LEVELS.join(', ')}` }).default('info'),
   ),
   DEBUG_ROUTES: flag(false),
+  // Версія збірки: git SHA, який записує Dockerfile (ARG GIT_SHA). Видно в /health і в HUD.
+  GIT_SHA: text('dev'),
+
+  // Звідки дозволено відкривати WebSocket. Порожньо — будь-звідки (зручно для розробки);
+  // У ПРОДАКШЕНІ ЗАДАТИ ОБОВ'ЯЗКОВО, інакше будь-який сайт підключить браузер гравця до гри.
+  ALLOWED_ORIGINS: originList(),
+  // Клієнти без заголовка Origin (не браузери: скрипти, curl). Коли список origin-ів задано,
+  // типово їм відмовляємо; 1 — пускати (потрібно, наприклад, навантажувальному тесту).
+  ALLOW_NO_ORIGIN: flag(false),
+  // Скільки одночасних WebSocket-з'єднань дозволено з однієї IP-адреси.
+  MAX_CONNECTIONS_PER_IP: integer(32, { min: 1, max: 100_000 }),
+  // 1 — сервер стоїть за проксі хостингу: адресу клієнта беремо з першого запису
+  // X-Forwarded-For. Без проксі НЕ вмикати: заголовок може написати сам клієнт.
+  TRUST_PROXY: flag(false),
   // Система зіткнень у матчі: hash — просторовий хеш, naive — перебір усіх пар.
   // Результат однаковий (доведено тестом у shared), різниця лише у швидкості: хеш швидший
   // за будь-якої кількості сутностей (npm run bench:collision), тому він типовий.
@@ -92,6 +135,11 @@ const configSchema = envSchema
     clientDist: resolve(env.CLIENT_DIST),
     logLevel: env.LOG_LEVEL,
     debugRoutes: env.DEBUG_ROUTES,
+    version: env.GIT_SHA,
+    allowedOrigins: env.ALLOWED_ORIGINS,
+    allowNoOrigin: env.ALLOW_NO_ORIGIN,
+    maxConnectionsPerIp: env.MAX_CONNECTIONS_PER_IP,
+    trustProxy: env.TRUST_PROXY,
     collision: env.COLLISION,
 
     maxRooms: env.MAX_ROOMS,

@@ -74,12 +74,12 @@ export class MatchLogs {
     room.on('start', () => {
       const log = openMatchLog(room, { dir: this.dir });
       this.#active.set(room.id, log);
-      this.logger.info('match log opened', { room: room.id, file: log.file });
+      const logger = this.logger.child({ roomId: room.id });
+      logger.info('match log opened', { file: log.file });
       log.done
-        .then(() => this.logger.info('match log closed', { room: room.id, file: log.file }))
+        .then(() => logger.info('match log closed', { file: log.file }))
         .catch((error: unknown) =>
-          this.logger.error('match log failed', {
-            room: room.id,
+          logger.error('match log failed', {
             error: error instanceof Error ? error.message : String(error),
           }),
         )

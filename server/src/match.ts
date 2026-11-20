@@ -417,6 +417,11 @@ export class Match {
     this.#timer = null;
   }
 
+  // Тривалості останніх кроків як є (мс) — щоб порахувати квантилі за всіма матчами разом.
+  durations(window = STATS_WINDOW): readonly number[] {
+    return this.#durations.slice(-Math.max(1, Math.min(STATS_CAPACITY, Math.floor(window))));
+  }
+
   // window — скільки останніх кроків узяти у звіт (не більше, ніж пам'ятаємо).
   report(window = STATS_WINDOW): MatchReport {
     const size = Math.max(1, Math.min(STATS_CAPACITY, Math.floor(window)));
@@ -458,15 +463,17 @@ export class MatchManager {
   }
 
   #wire(room: Room): void {
+    // roomId — у кожному рядку логу про цей матч.
+    const log = this.logger.child({ roomId: room.id });
     room.on('start', () => {
       const match = new Match({
         room,
-        logger: this.logger,
+        logger: log,
         ...(this.#collide ? { collide: this.#collide } : {}),
       });
       this.#matches.set(room.id, match);
       match.start();
-      this.logger.info('match started', { room: room.id, seed: room.arena.seed });
+      log.info('match started', { seed: room.arena.seed });
     });
     room.on('join', (player) => {
       this.#matches.get(room.id)?.addPlayer(player);
@@ -479,7 +486,7 @@ export class MatchManager {
       if (!match) return;
       match.stop();
       this.#matches.delete(room.id);
-      this.logger.info('match stopped', { room: room.id, ticks: match.world.tick });
+      log.info('match stopped', { ticks: match.world.tick });
     };
     room.on('empty', stop);
     room.on('close', stop);
@@ -491,6 +498,15 @@ export class MatchManager {
 
   report(window?: number): MatchReport[] {
     return [...this.#matches.values()].map((match) => match.report(window));
+  }
+
+  get size(): number {
+    return this.#matches.size;
+  }
+
+  // Квантилі тривалості кроку за всіма матчами разом.
+  tickSummary(window?: number): Summary {
+    return summarize([...this.#matches.values()].flatMap((match) => match.durations(window)));
   }
 
   closeAll(): void {

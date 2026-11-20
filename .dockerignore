@@ -1,0 +1,54 @@
+# Усе, що не потрібне для збірки образу, не потрапляє в контекст:
+# збірка швидша, кеш шарів стабільніший, а секрети й сміття не опиняються в образі.
+
+# залежності та результати збірки — образ ставить і збирає їх сам
+**/node_modules
+**/dist
+**/dist-profile
+**/coverage
+
+# git, CI, редактори
+.git
+.gitignore
+.github
+.vscode
+.idea
+.claude
+**/.DS_Store
+
+# оточення й налаштування npm розробника (можуть містити токени)
+**/.env
+**/.env.*
+!**/.env.example
+**/.npmrc
+**/*.local
+
+# журнали
+logs
+**/logs
+**/*.log
+
+# тести, e2e та звіти Playwright
+e2e
+**/test
+!client/public/assets/test
+playwright.config.ts
+playwright-report
+test-results
+**/vitest.config.js
+
+# документація та допоміжні скрипти — у роботі сервера участі не беруть
+docs
+README.md
+**/scripts
+client/art
+
+# сам опис образу
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# лінтер і форматер
+eslint.config.js
+.prettierrc.json
+.prettierignore

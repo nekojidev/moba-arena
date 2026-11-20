@@ -234,6 +234,8 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
     room: roomSchema,
     tickRate: z.number().positive(),
     codec: codecName,
+    // Версія сервера (git SHA збірки). Необов'язкова: старий сервер її не надсилає.
+    version: z.string().max(64).optional(),
   }),
   z.object({ v: version, type: z.literal('roster'), players: z.array(rosterPlayer) }),
   z.object({
@@ -250,6 +252,9 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
     tick: tickSchema,
     events: z.array(netEventSchema),
   }),
+  // Сервер зупиняється (оновлення, перезапуск): останнє повідомлення перед закриттям
+  // сокета з кодом 1001. Клієнт за ним повертає гравця в лобі.
+  z.object({ v: version, type: z.literal('shutdown'), reason: z.string().max(200) }),
   snapshotMessageSchema,
 ]);
 export type ServerMessage = z.infer<typeof serverMessageSchema>;
@@ -273,6 +278,7 @@ const SERVER_TYPES: ReadonlySet<string> = new Set([
   'chat',
   'pong',
   'events',
+  'shutdown',
   'snapshot',
 ]);
 

@@ -149,6 +149,12 @@ export function createConnection({
         last.events = message;
         events.emit('events', message);
         break;
+      case 'shutdown':
+        // Сервер попереджає, що зупиняється; сокет він закриє сам наступним кадром.
+        // Що з цим робити (повернути гравця в лобі) — вирішує власник з'єднання.
+        last.shutdown = message;
+        events.emit('shutdown', message);
+        break;
       case 'snapshot':
         last.snapshot = message;
         events.emit('snapshot', message);
@@ -168,6 +174,7 @@ export function createConnection({
 
     current.addEventListener('open', () => {
       attempt = 0;
+      delete last.shutdown; // попередження стосувалось попереднього сервера
       setStatus({ status: 'open' });
       // Спершу — вхід (сервер чекає його першим), потім усе, що накопичилось у черзі.
       if (hello) current.send(clientMessage(hello()));

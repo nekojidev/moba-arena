@@ -19,11 +19,20 @@ async function freePort() {
 }
 
 // nodeArgs — прапорці самого Node (наприклад, --cpu-prof для профілювання).
-export async function spawnServer(env = {}, { nodeArgs = [] } = {}) {
-  const port = await freePort();
+// port — конкретний порт (щоб підняти сервер знову на тому самому після падіння).
+export async function spawnServer(env = {}, { nodeArgs = [], port: fixedPort } = {}) {
+  const port = fixedPort ?? (await freePort());
   const entry = resolve(import.meta.dirname, '../src/index.ts');
   const child = spawn(process.execPath, [...nodeArgs, entry], {
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', LOG_LEVEL: 'warn', ...env },
+    env: {
+      ...process.env,
+      PORT: String(port),
+      HOST: '127.0.0.1',
+      LOG_LEVEL: 'warn',
+      // Досліди відкривають сотні сокетів з однієї адреси — типова межа їм завадила б.
+      MAX_CONNECTIONS_PER_IP: '1000',
+      ...env,
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let output = '';
@@ -45,11 +54,36 @@ export async function spawnServer(env = {}, { nodeArgs = [] } = {}) {
 
   return {
     http,
+    port,
     wsUrl: `ws://127.0.0.1:${port}/ws`,
     output: () => output,
+    // Рядки логу сервера, розібрані з JSON (не-JSON рядки, як-от стек у stderr, пропускаємо).
+    logs() {
+      const records = [];
+      for (const line of output.split('\n')) {
+        if (!line.startsWith('{')) continue;
+        try {
+          records.push(JSON.parse(line));
+        } catch {
+          continue; // обірваний останній рядок
+        }
+      }
+      return records;
+    },
+    // Проміс із { code, signal }, коли процес завершився (сам чи за сигналом).
+    exited,
     // Штатна зупинка: SIGTERM і чекаємо коду завершення.
     async stop() {
       child.kill('SIGTERM');
+      return exited;
+    },
+    // Сигнал без очікування (SIGKILL — «висмикнули шнур»; другий SIGTERM тощо).
+    signal(name) {
+      child.kill(name);
+    },
+    // Убити процес без жодної зупинки й дочекатися, поки він зникне.
+    async kill() {
+      child.kill('SIGKILL');
       return exited;
     },
   };

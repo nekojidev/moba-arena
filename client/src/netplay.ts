@@ -122,6 +122,8 @@ export function startNetGame({
   const arena = { width: welcome.room.arena.width, height: welcome.room.arena.height };
   const codec = CODECS[welcome.codec];
   let myShipId = welcome.shipId;
+  // Версія сервера (git SHA збірки) — для HUD: видно, чи вже працює нова збірка.
+  let serverVersion = welcome.version ?? 'dev';
 
   // --- налаштування з адресного рядка -------------------------------------------------------
   const injector = createInjector({
@@ -296,6 +298,7 @@ export function startNetGame({
     (next) => {
       // Після перепідключення сервер видає нового героя: починаємо з чистого аркуша.
       myShipId = next.shipId;
+      serverVersion = next.version ?? serverVersion;
       predictor.reset();
       self = null;
       ghosts.length = 0;
@@ -657,6 +660,7 @@ export function startNetGame({
       '← → поворот  ↑ тяга  ↓ гальмо',
       'Space постріл  E ривок  Enter чат',
       'L мережа  P передбачення  [ ] інтерполяція',
+      `версія ${serverVersion}`,
     );
     return lines;
   }

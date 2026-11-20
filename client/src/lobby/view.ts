@@ -38,7 +38,16 @@ function describe(error: unknown): string {
   return message;
 }
 
-export function mountLobbyView(lobby: Lobby, root: HTMLElement): { dispose(): void } {
+export interface LobbyViewOptions {
+  // Чому гравець знову в лобі («Сервер перезапускається…»). Висить, доки він не зайде в гру.
+  readonly notice?: string | null;
+}
+
+export function mountLobbyView(
+  lobby: Lobby,
+  root: HTMLElement,
+  { notice = null }: LobbyViewOptions = {},
+): { dispose(): void } {
   // Усі слухачі цього екрана знімаються одним abort() — і на lobby, і на DOM.
   const controller = new AbortController();
   const { signal } = controller;
@@ -70,8 +79,16 @@ export function mountLobbyView(lobby: Lobby, root: HTMLElement): { dispose(): vo
     textContent: 'Створити',
     className: 'secondary',
   });
+  // role="alert": зчитувач екрана озвучить причину одразу, а тест знайде її за роллю.
+  const noticeLine = element('p', {
+    className: 'status error notice',
+    textContent: notice ?? '',
+    hidden: notice === null,
+    role: 'alert',
+  });
   const form = element('form', {}, [
     element('h1', { textContent: 'MOBA Arena' }),
+    noticeLine,
     element('label', {}, [element('span', { textContent: 'Ім’я героя' }), nameInput]),
     element('h2', { textContent: 'Кімнати' }),
     list,

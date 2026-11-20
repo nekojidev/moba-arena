@@ -18,12 +18,14 @@
     "bench:codec": "node scripts/codec-benchmark.js",
     "bench:collision": "node scripts/collision-benchmark.js",
     "profile": "node scripts/profile-match.js",
-    "load": "node scripts/load-test.js"
+    "load": "node scripts/load-test.js",
+    "chaos": "node scripts/chaos.js"
   },
   "dependencies": {
+    "@moba-arena/shared": "*",
+    "pino": "^10.4.0",
     "ws": "^8.18.0",
-    "zod": "^4.0.0",
-    "@moba-arena/shared": "*"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/ws": "^8.18.0"

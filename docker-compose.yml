@@ -1,0 +1,46 @@
+# Локальний запуск «як у продакшені»: той самий образ, що піде в реєстр.
+#
+#   GIT_SHA=$(git rev-parse HEAD) docker compose up --build
+#   відкрити http://localhost:3000   (порт зайнятий — GAME_PORT=3080 docker compose up)
+#   docker compose down        # зупинити (том із журналами лишається)
+#   docker compose down -v     # зупинити й видалити журнали
+
+services:
+  game:
+    build:
+      context: .
+      args:
+        # Версія збірки: її показує /health. Без змінної — "dev".
+        GIT_SHA: ${GIT_SHA:-dev}
+    image: moba-arena:local
+    ports:
+      # GAME_PORT — порт на вашій машині (типово 3000); у контейнері завжди 3000.
+      - '${GAME_PORT:-3000}:3000'
+    environment:
+      # Лише сторінка з цієї адреси може відкрити WebSocket (перевірка заголовка Origin).
+      # Відкриваєте гру за іншою адресою (IP у локальній мережі) — допишіть її через кому.
+      ALLOWED_ORIGINS: http://localhost:${GAME_PORT:-3000}
+      ALLOW_NO_ORIGIN: '0'
+      # Проксі перед контейнером немає, тож X-Forwarded-For не довіряємо.
+      TRUST_PROXY: '0'
+      LOG_LEVEL: info
+      MAX_ROOMS: '20'
+      MAX_PLAYERS_PER_ROOM: '8'
+    volumes:
+      - match-logs:/data/logs
+    # Маленький init як процес 1: пересилає сигнали Node і прибирає «зомбі».
+    init: true
+    # docker stop надсилає SIGTERM; сервер прощається з гравцями й виходить сам (≈1 с).
+    # 15 с — запас понад внутрішній ліміт сервера (10 с), після нього Docker шле SIGKILL.
+    stop_signal: SIGTERM
+    stop_grace_period: 15s
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # HEALTHCHECK успадковано з Dockerfile (GET /health).
+
+volumes:
+  match-logs:

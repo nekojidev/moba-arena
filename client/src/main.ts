@@ -1,17 +1,19 @@
-// Точка входу: завантаження → лобі → гра. Кожен крок — await:
+// Точка входу: завантаження → лобі → гра (→ знову лобі, якщо сервер зник). Кожен крок — await:
 // наступний екран не почнеться, поки не завершився попередній, але потік при цьому
 // не блокується — між await-ами працюють і рендер смужки, і кнопки.
 
+import './pwa.ts';
 import { createAudio } from './audio.ts';
 import { mountChat } from './chat.ts';
 import { isRecord, requireElement } from './guards.ts';
 import { createConnection } from './net/connection.ts';
 import { Lobby, type Joined } from './lobby/lobby.ts';
+import { watchSession } from './lobby/session.ts';
 import { mountLobbyView } from './lobby/view.ts';
 import { setupCanvas } from './render/canvas.ts';
 import { createSprites, parseAtlas } from './render/sprites.ts';
 import { describeError, runLoadingScreen } from './screens/loading.ts';
-import { startNetGame, type NetGame } from './netplay.ts';
+import { startNetGame } from './netplay.ts';
 import { startGame, type LocalConfig, type LocalGame } from './play.ts';
 
 // Налагоджувальна «ручка» в консолі: window.__game. Розширюємо тип Window, щоб
@@ -90,9 +92,12 @@ const socketUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location
 // ?codec=json — ігрові повідомлення текстом, щоб порівняти з бінарним форматом.
 const codec = params.get('codec') === 'json' ? 'json' : 'binary';
 
-// null — гра без сервера (режими експериментів); інакше — те, що повідомило лобі.
-async function chooseRoom(): Promise<Joined | null> {
-  if (params.has('exp') || params.has('bench')) return null;
+const offline = params.has('exp') || params.has('bench');
+const modes = requireElement(document.querySelector<HTMLElement>('#modes'), '#modes');
+
+// Лобі: чекаємо, поки гравець обере кімнату й сервер його прийме.
+// notice — чому гравець знову тут («Сервер перезапускається…»); на першому вході його немає.
+async function chooseRoom(notice: string | null): Promise<Joined> {
   const lobby = new Lobby({
     url: new URL('api/rooms', document.baseURI).href,
     // hello надсилається після КОЖНОГО відкриття сокета — отже, і після перепідключення.
@@ -105,6 +110,7 @@ async function chooseRoom(): Promise<Joined | null> {
   const lobbyView = mountLobbyView(
     lobby,
     requireElement(document.querySelector<HTMLElement>('#lobby'), '#lobby'),
+    { notice },
   );
   lobby.start();
   // подія → проміс; тип Joined виводиться з імені події 'joined'
@@ -113,16 +119,21 @@ async function chooseRoom(): Promise<Joined | null> {
   return joined;
 }
 
-const joined = await chooseRoom();
-
-// 3. Гра. З сервером — мережева (світ рахує він); без нього — локальна з Lab 1–3.
-requireElement(document.querySelector<HTMLElement>('#modes'), '#modes').hidden = false;
-let game: NetGame | LocalGame;
-let roomName: string;
-if (joined) {
-  const { name, room, connection, playerId, welcome } = joined;
-  roomName = room.name;
-  game = startNetGame({ ctx, view, sprites, audio, connection, welcome, playerName: name, params });
+// Одна мережева гра: від входу в кімнату до повернення в лобі. Проміс виконується текстом
+// для гравця — чому гра скінчилась. Усе, що гра створила (цикл, таймери, слухачі, сокет,
+// панель чату), прибирається тут же: наступна гра починає з чистого аркуша.
+function playOnline({ name, room, connection, playerId, welcome }: Joined): Promise<string> {
+  const session = new AbortController();
+  const game = startNetGame({
+    ctx,
+    view,
+    sprites,
+    audio,
+    connection,
+    welcome,
+    playerName: name,
+    params,
+  });
   // ?bots=8 — попросити сервер додати ботів у цей матч (для профілювання й демонстрації).
   const bots = Number(params.get('bots') ?? 0);
   if (Number.isInteger(bots) && bots > 0) {
@@ -132,15 +143,48 @@ if (joined) {
       body: JSON.stringify({ count: bots }),
     }).catch((error: unknown) => console.warn('[bots]', error));
   }
-  for (const warning of warnings) console.warn(warning);
-  mountChat(connection, requireElement(document.querySelector<HTMLElement>('#chat'), '#chat'), {
-    playerId,
-    roomName,
+  const chat = mountChat(
+    connection,
+    requireElement(document.querySelector<HTMLElement>('#chat'), '#chat'),
+    { playerId, roomName: room.name },
+  );
+  window.addEventListener('pagehide', () => connection.close(), { signal: session.signal });
+  modes.hidden = false;
+  console.log(`[game] кімната «${room.name}», ассети за ${elapsedMs.toFixed(0)} мс (${strategy})`);
+  window.__game = { game, audio, connection }; // для налагодження з консолі
+
+  return new Promise((resolve) => {
+    watchSession(connection, {
+      signal: session.signal,
+      onReturn({ reason, message }) {
+        console.warn(`[game] повернення в лобі (${reason}): ${message}`);
+        session.abort();
+        game.stop();
+        chat.dispose();
+        connection.close(); // більше не перепідключаємось: у лобі буде нове з'єднання
+        modes.hidden = true;
+        window.__game = undefined; // доки гравець у лобі, гри немає
+        resolve(message);
+      },
+    });
   });
-  window.addEventListener('pagehide', () => connection.close());
-} else {
-  roomName = 'локальна';
-  game = startGame({
+}
+
+// Лобі → гра → (сервер зник) → лобі з поясненням → гра… і так, доки відкрита сторінка.
+async function runOnline(): Promise<never> {
+  let notice: string | null = null;
+  for (;;) {
+    const joined = await chooseRoom(notice);
+    notice = await playOnline(joined);
+  }
+}
+
+// 3. Гра. З сервером — мережева (світ рахує він); без нього — локальна з Lab 1–3.
+if (offline) {
+  // Режими експериментів Lab 1 грають без сервера й без лобі.
+  modes.hidden = false;
+  const roomName = 'локальна';
+  const game: LocalGame = startGame({
     ctx,
     view,
     sprites,
@@ -151,7 +195,9 @@ if (joined) {
     warnings,
     params,
   });
+  console.log(`[game] кімната «${roomName}», ассети за ${elapsedMs.toFixed(0)} мс (${strategy})`);
+  window.__game = { game, audio, connection: null }; // для налагодження з консолі
+} else {
+  for (const warning of warnings) console.warn(warning);
+  await runOnline();
 }
-
-console.log(`[game] кімната «${roomName}», ассети за ${elapsedMs.toFixed(0)} мс (${strategy})`);
-window.__game = { game, audio, connection: joined?.connection ?? null }; // для налагодження з консолі
